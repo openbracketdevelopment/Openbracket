@@ -129,7 +129,6 @@ p {
 }
 ul,
 ol {
-  font-weight:bold;
   text-align:left;
   margin-left: var(--space-4);
   list-style-position: outside;
@@ -140,6 +139,10 @@ ol {
     columns: 2;
   -webkit-columns: 2;
   -moz-columns: 2;
+    li{
+
+    padding-right:2rem;
+    }
   }
 }
 ul{

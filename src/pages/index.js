@@ -87,18 +87,26 @@ const IndexPage = () => (
         />
       </h1>
       <p>
-        Please bear with us while we make updates to our new site to better
-        serve you and give you a better and fun experience.
+        <i>
+          Please bear with us while we make updates to our new site to better
+          serve you and give you a better and fun experience.
+        </i>
       </p>
       <p>
         If it's your first time here, I'd like to thank you stopping by and
         checking us out.
       </p>
       <p>
-        A little about us... We are a small web studio based in Dallas/Fort
-        Worth who builds really cool, engaging and unique web experiences. We
-        are in the business of helping you build and grow your business on the
-        net.
+        A little about us... We are a small but mighty web studio based in
+        Dallas/Fort Worth who has the chops in the advertising and development
+        business that makes really cool, quality, high performance, engaging,
+        modern and unique web experiences. We are in the business of helping you
+        build and grow your business on the net.
+      </p>
+      <p>
+        Give us a <a href="tel:817-845-1242">call</a> or{" "}
+        <a href="mailto:tam@openbracket.io">email</a> us, let's work together
+        and make it happen.
       </p>
       <h2>Services We Offer</h2>
       <ul>
