@@ -47,6 +47,11 @@
 .textCenter {
   text-align: center;
 }
+.contentCenter{
+  margin:0 auto;
+  display:grid;
+  justify-content: center;
+}
 
 .intro {
   max-width: none;

@@ -71,50 +71,60 @@ const utmParameters = `?utm_source=starter&utm_medium=start-page&utm_campaign=de
 
 const IndexPage = () => (
   <Layout>
-    <div className={styles.textCenter}>
-      <StaticImage
-        src="../images/example.png"
-        loading="eager"
-        width={64}
-        quality={95}
-        formats={["auto", "webp", "avif"]}
-        alt=""
-        style={{ marginBottom: `var(--space-3)` }}
-      />
+    <div className={`${styles.textCenter} ${styles.contentCenter}`}>
       <h1>
-        Welcome to <b>Gatsby!</b>
+        <StaticImage
+          src="../images/ob-logo-reversed.png"
+          loading="eager"
+          width={300}
+          quality={95}
+          formats={["auto", "webp", "avif"]}
+          alt="OpenBracket Development"
+          style={{
+            marginBottom: `var(--space-5)`,
+            marginTop: `var(--space-3)`,
+          }}
+        />
       </h1>
-      <p className={styles.intro}>
-        <b>Example pages:</b>{" "}
-        {samplePageLinks.map((link, i) => (
-          <React.Fragment key={link.url}>
-            <Link to={link.url}>{link.text}</Link>
-            {i !== samplePageLinks.length - 1 && <> · </>}
-          </React.Fragment>
-        ))}
-        <br />
-        Edit <code>src/pages/index.js</code> to update this page.
+      <p>
+        Please bear with us while we make updates to our new site to better
+        serve you and give you a better and fun experience.
       </p>
+      <p>
+        If it's your first time here, I'd like to thank you stopping by and
+        checking us out.
+      </p>
+      <p>
+        A little about us... We are a small web studio based in Dallas/Fort
+        Worth who builds really cool, engaging and unique web experiences. We
+        are in the business of helping you build and grow your business on the
+        net.
+      </p>
+      <h2>Services We Offer</h2>
+      <ul>
+        <li>Custom Website Design and Development</li>
+        <li>UI/UX Design</li>
+        <li>Wireframing and Sitemaps</li>
+        <li>Theme & Plugin development</li>
+        <li>Content Management Systems</li>
+        <li>API Integration</li>
+        <li>Search Engine Optimization (SEO)</li>
+        <li>Web Hosting and Deployment</li>
+        <li>Server management</li>
+        <li>Email Set Up</li>
+        <li>Custom HTML Emailer Design</li>
+        <li>Responsive Optimization</li>
+        <li>Cross-Browser Testing</li>
+        <li>Performance Optimizations</li>
+        <li>Content Delivery Network (CDN)</li>
+        <li>Security Audits & Enhancements</li>
+        <li>Website Maintenance and Monitoring</li>
+        <li>E-Commerce</li>
+        <li>CMS Training</li>
+        <li>Video Animation</li>
+        <li>Photography</li>
+      </ul>
     </div>
-    <ul className={styles.list}>
-      {links.map(link => (
-        <li key={link.url} className={styles.listItem}>
-          <a
-            className={styles.listItemLink}
-            href={`${link.url}${utmParameters}`}
-          >
-            {link.text} ↗
-          </a>
-          <p className={styles.listItemDescription}>{link.description}</p>
-        </li>
-      ))}
-    </ul>
-    {moreLinks.map((link, i) => (
-      <React.Fragment key={link.url}>
-        <a href={`${link.url}${utmParameters}`}>{link.text}</a>
-        {i !== moreLinks.length - 1 && <> · </>}
-      </React.Fragment>
-    ))}
   </Layout>
 )
 
