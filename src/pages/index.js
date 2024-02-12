@@ -98,10 +98,10 @@ const IndexPage = () => (
       </p>
       <p>
         A little about us... We are a small but mighty web studio based in
-        Dallas/Fort Worth who has the chops in the advertising and development
-        business that makes really cool, quality, high performance, engaging,
-        modern and unique web experiences. We are in the business of helping you
-        build and grow your business on the net.
+        Dallas/Fort Worth who has the chops in the advertising and web
+        development business that makes quality, high performant, modern and
+        unique web experiences. Most importantly, we are in the business of
+        helping you build and grow your business on the world wide web.
       </p>
       <p>
         Give us a <a href="tel:817-845-1242">call</a> or{" "}
@@ -117,6 +117,7 @@ const IndexPage = () => (
         <li>Strategy & Planning</li>
         <li>Branding & Logo Design</li>
         <li>Content Management Systems</li>
+        <li>Content Development</li>
         <li>API Integration</li>
         <li>Search Engine Optimization (SEO)</li>
         <li>Web Hosting & Deployment</li>
