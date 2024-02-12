@@ -40,4 +40,6 @@ module.exports = {
       },
     },
   ],
+  // Set the output directory to "public"
+  pathPrefix: "/",
 }

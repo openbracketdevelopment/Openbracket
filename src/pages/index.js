@@ -103,13 +103,15 @@ const IndexPage = () => (
       <h2>Services We Offer</h2>
       <ul>
         <li>Custom Website Design and Development</li>
-        <li>UI/UX Design</li>
+        <li>UI/UX Design & Prototyping</li>
         <li>Wireframing and Sitemaps</li>
-        <li>Theme & Plugin development</li>
+        <li>Bespoke Theme & Plugin development</li>
+        <li>Strategy & Planning</li>
+        <li>Branding & Logo Design</li>
         <li>Content Management Systems</li>
         <li>API Integration</li>
         <li>Search Engine Optimization (SEO)</li>
-        <li>Web Hosting and Deployment</li>
+        <li>Web Hosting & Deployment</li>
         <li>Server management</li>
         <li>Email Set Up</li>
         <li>Custom HTML Emailer Design</li>
@@ -118,10 +120,11 @@ const IndexPage = () => (
         <li>Performance Optimizations</li>
         <li>Content Delivery Network (CDN)</li>
         <li>Security Audits & Enhancements</li>
+        <li>Analytics & Tracking</li>
         <li>Website Maintenance and Monitoring</li>
         <li>E-Commerce</li>
         <li>CMS Training</li>
-        <li>Video Animation</li>
+        <li>Video Production & Animation</li>
         <li>Photography</li>
       </ul>
     </div>
