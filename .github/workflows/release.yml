@@ -1,0 +1,86 @@
+name: Release build
+
+# Push a v* tag on a main commit to build and publish.
+# Set AUTO_PUBLISH to "false" for draft-only releases.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      AUTO_PUBLISH: "true"
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Ensure tag is on main
+        run: |
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main \
+            || { echo "::error::Tag ${GITHUB_REF_NAME} is not on main. Tag a commit from main."; exit 1; }
+
+      - name: Check Netlify configuration
+        run: |
+          [[ -n "$NETLIFY_AUTH_TOKEN" && -n "$NETLIFY_SITE_ID" ]] \
+            || { echo "::error::Set the NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID repository secrets."; exit 1; }
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build and deploy to Netlify
+        id: deploy
+        run: |
+          deploy_args=()
+          case "$AUTO_PUBLISH" in
+            true) deploy_args+=(--prod) ;;
+            false) ;;
+            *) echo "::error::AUTO_PUBLISH must be true or false"; exit 1 ;;
+          esac
+          npx --yes netlify-cli@27 deploy \
+            "${deploy_args[@]}" \
+            --context production \
+            --message "Release ${GITHUB_REF_NAME} (${GITHUB_SHA::7})" \
+            --json > deploy.json
+          deploy_id=$(jq -er '.deploy_id' deploy.json)
+          deploy_url=$(jq -er '.deploy_url' deploy.json)
+          echo "deploy_id=$deploy_id" >> "$GITHUB_OUTPUT"
+          echo "deploy_url=$deploy_url" >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        env:
+          DEPLOY_ID: ${{ steps.deploy.outputs.deploy_id }}
+          DEPLOY_URL: ${{ steps.deploy.outputs.deploy_url }}
+        run: |
+          {
+            if [[ "$AUTO_PUBLISH" == "true" ]]; then
+              echo "## Published to production: ${GITHUB_REF_NAME}"
+            else
+              echo "## Draft deploy ready for ${GITHUB_REF_NAME}"
+            fi
+            echo ""
+            echo "- Preview: ${DEPLOY_URL}"
+            echo "- Deploy ID: \`${DEPLOY_ID}\`"
+            echo ""
+            if [[ "$AUTO_PUBLISH" == "true" ]]; then
+              echo "This release was automatically published to production."
+            else
+              echo "To go live, run **Actions > Publish production** with this deploy ID,"
+              echo "or click **Publish deploy** on it in the Netlify Deploys list."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

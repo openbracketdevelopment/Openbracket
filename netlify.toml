@@ -1,0 +1,10 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Keep aligned with .nvmrc and the GitHub Actions runtime.
+  NODE_VERSION = "26"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

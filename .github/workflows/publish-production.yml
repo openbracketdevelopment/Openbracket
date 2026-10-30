@@ -1,0 +1,46 @@
+name: Publish production
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_id:
+        description: "Netlify deploy ID from the Release build summary"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-production
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    environment:
+      name: production
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+      DEPLOY_ID: ${{ inputs.deploy_id }}
+    steps:
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 26
+
+      - name: Check Netlify configuration
+        run: |
+          [[ -n "$NETLIFY_AUTH_TOKEN" && -n "$NETLIFY_SITE_ID" ]] \
+            || { echo "::error::Set the NETLIFY_AUTH_TOKEN and NETLIFY_SITE_ID repository secrets."; exit 1; }
+
+      - name: Publish deploy
+        run: |
+          [[ "$DEPLOY_ID" =~ ^[a-f0-9]{24}$ ]] \
+            || { echo "::error::Invalid deploy ID"; exit 1; }
+          npx --yes netlify-cli@27 api restoreSiteDeploy \
+            --data "{\"site_id\":\"${NETLIFY_SITE_ID}\",\"deploy_id\":\"${DEPLOY_ID}\"}" > result.json
+          deploy_url=$(jq -er '.deploy_ssl_url' result.json)
+          state=$(jq -er '.state' result.json)
+          echo "Published ${deploy_url} (${state})" | tee -a "$GITHUB_STEP_SUMMARY"
