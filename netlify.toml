@@ -5,6 +5,8 @@
 [build.environment]
   # Keep aligned with .nvmrc and the GitHub Actions runtime.
   NODE_VERSION = "26"
+  # Ignore the legacy Gatsby plugin if it is still enabled in Netlify.
+  NETLIFY_SKIP_GATSBY_BUILD_PLUGIN = "true"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
