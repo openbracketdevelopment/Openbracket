@@ -29,9 +29,16 @@ test("Work appears in shared navigation and both sitemaps; contact remains avail
     assert.ok(doc.querySelector('a[href="/contact"]'))
   }
   const header = readFileSync("components/header.tsx", "utf8")
+  const themeIndex = header.indexOf("<ThemeToggle />")
+  const contactIndex = header.indexOf(
+    'className="button header-cta" href="/contact"',
+  )
+  assert.ok(themeIndex >= 0 && contactIndex >= 0 && themeIndex < contactIndex)
+  assert.ok(header.includes("<BrandLogo />"))
+  const footer = new JSDOM(renderToStaticMarkup(createElement(Footer))).window
+    .document
   assert.ok(
-    header.indexOf('className="button header-cta" href="/contact"') <
-      header.indexOf("<ThemeToggle />"),
+    footer.querySelector('a[aria-label="OpenBracket home"] svg.brand-logo'),
   )
 })
 

@@ -113,16 +113,12 @@ a:hover {
   height: 70px;
   flex-shrink: 0;
 }
-.brand img {
+.brand img,
+.brand-logo {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-.header-tag {
-  font-size: 9px;
-  color: var(--muted);
-  max-width: 145px;
 }
 .desktop-nav {
   display: flex;
@@ -857,9 +853,6 @@ dialog button {
   .wrap {
     width: calc(100% - 64px);
   }
-  .header-tag {
-    display: none;
-  }
   .hero-grid {
     grid-template-columns: 1fr 1fr;
   }
@@ -1157,7 +1150,7 @@ dialog button {
   height: auto;
   aspect-ratio: 700/150;
 }
-.site-footer .brand-horizontal img {
+.site-footer .brand-horizontal .brand-logo {
   width: 100%;
   height: auto;
 }
@@ -1311,14 +1304,11 @@ dialog button {
     --shadow: #c3c7b7;
   }
 }
-.site-footer .brand-horizontal .logo-on-light {
-  display: none;
+.brand-logo {
+  color: #ffffff;
 }
-[data-theme="light"] .site-footer .brand-horizontal .logo-on-light {
-  display: block;
-}
-[data-theme="light"] .site-footer .brand-horizontal .logo-on-dark {
-  display: none;
+[data-theme="light"] .brand-logo {
+  color: #171815;
 }
 .sr-only {
   position: absolute;
@@ -1333,11 +1323,8 @@ dialog button {
 }
 /* Charcoal hardware against the light page; the green terminal never changes polarity. */
 @media (prefers-color-scheme: light) {
-  :root:not([data-theme]) .site-footer .brand-horizontal .logo-on-light {
-    display: block;
-  }
-  :root:not([data-theme]) .site-footer .brand-horizontal .logo-on-dark {
-    display: none;
+  :root:not([data-theme]) .brand-logo {
+    color: #171815;
   }
 }
 @media (min-width: 761px) {
@@ -1346,9 +1333,6 @@ dialog button {
   }
   .desktop-nav {
     gap: 22px;
-  }
-  .header-tag {
-    max-width: 125px;
   }
 }
 @media (max-width: 760px) {
@@ -1951,4 +1935,276 @@ dialog button {
 .crt-composition[data-motion-override="true"][data-running="true"]
   .terminal-caret[data-blink="true"] {
   animation: terminal-caret 1.2s step-end infinite !important;
+}
+
+/* Horizontal header wordmark, with theme control before the contact CTA. */
+.site-header .brand-horizontal {
+  width: 232px;
+  height: auto;
+  aspect-ratio: 700 / 150;
+}
+.site-header .brand-horizontal .brand-logo {
+  width: 100%;
+  height: auto;
+}
+@media (max-width: 1100px) {
+  .site-header .brand-horizontal {
+    width: 200px;
+  }
+}
+@media (max-width: 760px) {
+  .site-header .brand-horizontal {
+    width: 180px;
+  }
+}
+/* Keep one compact header row; move actions into the menu at 515px. */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.header-actions .header-cta {
+  margin-left: 0;
+}
+.mobile-menu-actions {
+  display: none;
+}
+.menu-theme-setting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 18px;
+}
+.menu-theme-setting .mono {
+  color: var(--muted);
+  font-size: 11px;
+  text-transform: uppercase;
+}
+@media (max-width: 760px) {
+  .header-actions {
+    margin-left: auto;
+    gap: 9px;
+  }
+}
+@media (max-width: 515px) {
+  .site-header .header-inner {
+    display: flex;
+    height: 80px;
+    min-height: 80px;
+    padding: 0;
+    gap: 16px;
+  }
+  .site-header .brand-horizontal {
+    width: 200px;
+    max-width: calc(100% - 80px);
+  }
+  .header-actions {
+    display: none;
+  }
+  .header-inner > .menu-trigger {
+    margin-left: auto;
+  }
+  .mobile-menu-actions {
+    display: grid;
+    gap: 16px;
+    padding: 0 25px 10px;
+  }
+  .mobile-menu-actions .button {
+    width: 100%;
+  }
+  .site-header .header-inner:has(.no-script-nav) {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 10px 0;
+  }
+}
+/* The native hit target follows the 3D button's projected position. */
+.monitor-power-control {
+  position: absolute;
+  left: 60.6%;
+  top: 74.5%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+.monitor-power-control:hover {
+  background: #de373608;
+}
+.monitor-power-control[aria-disabled="true"] {
+  cursor: wait;
+}
+.monitor-power-control:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  background: #de37360c;
+}
+.power-control-tooltip {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--text);
+  padding: 6px 9px;
+  font: 10px var(--mono);
+  line-height: 1.5;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+.monitor-power-control:hover .power-control-tooltip,
+.monitor-power-control:focus-visible .power-control-tooltip {
+  opacity: 1;
+}
+.fallback-powered-content {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 1;
+}
+.fallback-powered-content[data-phase="OFF"] {
+  opacity: 0;
+}
+.fallback-shutdown-line,
+.fallback-shutdown-point {
+  opacity: 0;
+  transform-origin: 195px 132px;
+}
+.fallback-powered-content[data-phase="POWERING_OFF"] {
+  animation: fallback-off 0.72s ease-in forwards;
+}
+.fallback-powered-content[data-phase="POWERING_ON"] {
+  animation: fallback-on 0.85s ease-out both;
+}
+.fallback-shutdown-line[data-phase="POWERING_OFF"] {
+  animation: fallback-line 0.72s ease-in forwards;
+}
+.fallback-shutdown-point[data-phase="POWERING_OFF"] {
+  animation: fallback-point 0.72s ease-in forwards;
+}
+@keyframes fallback-off {
+  0% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  33% {
+    transform: scaleY(0.004);
+    opacity: 1;
+  }
+  34%,
+  100% {
+    transform: scaleY(0.004);
+    opacity: 0;
+  }
+}
+@keyframes fallback-line {
+  0%,
+  15% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+  33%,
+  53% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  80% {
+    opacity: 1;
+    transform: scaleX(0.006);
+  }
+  81%,
+  100% {
+    opacity: 0;
+    transform: scaleX(0.01);
+  }
+}
+@keyframes fallback-point {
+  0%,
+  80% {
+    opacity: 0;
+  }
+  81% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes fallback-on {
+  0%,
+  24% {
+    opacity: 0;
+    transform: scaleY(0.006);
+  }
+  48% {
+    opacity: 0.2;
+    transform: scaleY(0.03);
+  }
+  82% {
+    opacity: 0.8;
+    transform: scaleY(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+.monitor-assembly[data-pressed="true"] .fallback-button-face {
+  transform: translate(-1px, 1px);
+}
+.fallback-button-face {
+  transition: transform 0.18s ease;
+}
+.monitor-assembly:has(.monitor-power-control:hover) .fallback-button-face,
+.monitor-assembly:has(.monitor-power-control:focus-visible)
+  .fallback-button-face {
+  filter: brightness(1.12);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fallback-powered-content[data-phase="POWERING_OFF"] {
+    animation: power-fade-out 0.16s ease-out forwards !important;
+  }
+  .fallback-powered-content[data-phase="POWERING_ON"] {
+    animation: power-fade-in 0.16s ease-in both !important;
+  }
+  .fallback-shutdown-line,
+  .fallback-shutdown-point {
+    display: none;
+  }
+  .fallback-button-face,
+  .power-control-tooltip {
+    transition: none;
+  }
+}
+@keyframes power-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes power-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.monitor-assembly:has(.crt-webgl[data-ready="true"]) .monitor-power-control {
+  left: var(--power-x, 60.6%);
+  top: var(--power-y, 74.5%);
 }

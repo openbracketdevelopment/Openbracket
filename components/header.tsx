@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import Image from "next/image"
+import BrandLogo from "./brand-logo"
 import { useEffect, useRef, useState } from "react"
 import { usePathname } from "next/navigation"
 import ThemeToggle from "./theme-toggle"
@@ -40,16 +40,13 @@ export default function Header() {
   return (
     <header className="site-header">
       <div className="wrap header-inner">
-        <Link href="/" className="brand" aria-label="OpenBracket home">
-          <Image
-            src="/brand/openbracket-icon.svg"
-            alt="OpenBracket Development"
-            width={224}
-            height={200}
-            priority
-          />
+        <Link
+          href="/"
+          className="brand brand-horizontal"
+          aria-label="OpenBracket home"
+        >
+          <BrandLogo />
         </Link>
-        <span className="header-tag mono">INDEPENDENT DEVELOPMENT STUDIO</span>
         <nav className="desktop-nav" aria-label="Main navigation">
           {navigation.slice(1).map(link => (
             <a
@@ -61,10 +58,12 @@ export default function Header() {
             </a>
           ))}
         </nav>
-        <a className="button header-cta" href="/contact">
-          Let’s talk <span>↗</span>
-        </a>
-        <ThemeToggle />
+        <div className="header-actions">
+          <ThemeToggle />
+          <a className="button header-cta" href="/contact">
+            Let’s talk <span>↗</span>
+          </a>
+        </div>
         <button
           className="menu-trigger"
           ref={trigger}
@@ -107,6 +106,15 @@ export default function Header() {
               </a>
             ))}
           </nav>
+          <div className="mobile-menu-actions">
+            <div className="menu-theme-setting">
+              <span className="mono">Appearance</span>
+              <ThemeToggle />
+            </div>
+            <a className="button" href="/contact" onClick={close}>
+              Let’s talk <span>↗</span>
+            </a>
+          </div>
           <p className="mono">SMALL STUDIO. OPEN POSSIBILITIES.</p>
         </dialog>
         <noscript>

@@ -3,12 +3,15 @@ import dynamic from "next/dynamic"
 import MonitorFallback from "./crt/monitor-fallback"
 import { useEffect, useRef, useState } from "react"
 
+import { terminalPhrases } from "../lib/typewriter"
+
 import {
-  terminalPhrases,
-  initialTypingState,
-  advanceTyping,
-  typingDelay,
-} from "../lib/typewriter"
+  useMonitorPower,
+  useResumableTyping,
+  useTexasClock,
+} from "./crt/use-monitor"
+import PowerControl from "./crt/power-control"
+import { powerAnnouncement, powerBusy } from "../lib/crt-power"
 
 const MonitorScene = dynamic(() => import("./crt/monitor-scene"), {
   ssr: false,
@@ -23,7 +26,17 @@ export default function HeroVisual() {
   const staticTerminal = reduced && !motionOverride
   const [graphics, setGraphics] = useState(false)
   const [visible, setVisible] = useState(false)
-  const [typing, setTyping] = useState(initialTypingState)
+  const [pressed, setPressed] = useState(false)
+  const [highlighted, setHighlighted] = useState(false)
+  const { power, activate } = useMonitorPower(reduced)
+  const canType = running && !paused && !staticTerminal && power.phase === "ON"
+  const { typing, freeze, reset } = useResumableTyping(canType)
+  const clock = useTexasClock()
+  function activateMonitor() {
+    if (powerBusy(power.phase)) return
+    freeze()
+    activate()
+  }
   useEffect(() => {
     const element = host.current
     if (!element) return
@@ -57,27 +70,16 @@ export default function HeroVisual() {
       preference.removeEventListener("change", sync)
     }
   }, [])
-  useEffect(() => {
-    if (!running || paused || staticTerminal) return
-    const timer = window.setTimeout(
-      () => setTyping(advanceTyping),
-      typingDelay(typing),
-    )
-    return () => window.clearTimeout(timer)
-  }, [running, paused, typing, staticTerminal])
   const text = staticTerminal
     ? terminalPhrases[0]
     : terminalPhrases[typing.phrase].slice(0, typing.length)
   const blink =
-    !staticTerminal &&
-    running &&
-    !paused &&
-    (typing.phase === "holding" || typing.phase === "waiting")
+    canType && (typing.phase === "holding" || typing.phase === "waiting")
   return (
     <div
       className="crt-composition"
       ref={host}
-      data-running={running && !paused && !staticTerminal}
+      data-running={canType}
       data-motion-override={motionOverride}
     >
       <span className="sr-only">
@@ -88,27 +90,52 @@ export default function HeroVisual() {
       <span className="art-coordinate mono">
         OB / PERSONAL POSSIBILITY COMPUTER
       </span>
-      <div className="monitor-assembly" aria-hidden="true">
+      <div
+        className="monitor-assembly"
+        role="group"
+        aria-label="Interactive CRT monitor"
+        data-power={power.phase}
+        data-pressed={pressed}
+      >
         <noscript>
           <style>{`.terminal-typed{display:none}.terminal-static{display:block!important}`}</style>
         </noscript>
-        <MonitorFallback text={text} blink={blink} />
+        <MonitorFallback
+          text={text}
+          blink={blink}
+          power={power}
+          clock={clock}
+          reduced={reduced}
+        />
         {graphics && (
           <MonitorScene
             text={text}
             blink={blink}
-            active={visible && running && !paused && !staticTerminal}
+            active={visible && canType}
             reduced={reduced}
+            power={power}
+            clock={clock}
+            pressed={pressed}
+            highlighted={highlighted}
           />
         )}
+        <PowerControl
+          phase={power.phase}
+          activate={activateMonitor}
+          press={setPressed}
+          highlight={setHighlighted}
+        />
       </div>
+      <p className="sr-only" role="status" aria-live="polite">
+        {powerAnnouncement(power.phase)}
+      </p>
       <div className="art-controls">
         <span className="mono">OLD-SCHOOL CHARM. NEW POSSIBILITIES.</span>
         <button
           onClick={() => {
             if (staticTerminal) {
               setMotionOverride(true)
-              setTyping(initialTypingState)
+              reset()
               setPaused(false)
             } else setPaused(!paused)
           }}

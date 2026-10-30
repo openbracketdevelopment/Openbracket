@@ -1,5 +1,5 @@
 import Link from "next/link"
-import Image from "next/image"
+import BrandLogo from "./brand-logo"
 import { navigation, site } from "../data/site"
 export default function Footer() {
   return (
@@ -11,20 +11,7 @@ export default function Footer() {
             href="/"
             aria-label="OpenBracket home"
           >
-            <Image
-              className="logo-on-dark"
-              src="/brand/openbracket-horizontal-dark.svg"
-              alt="OpenBracket Development"
-              width={700}
-              height={150}
-            />
-            <Image
-              className="logo-on-light"
-              src="/brand/openbracket-horizontal-light.svg"
-              alt="OpenBracket Development"
-              width={700}
-              height={150}
-            />
+            <BrandLogo />
           </Link>
           <p>
             A small studio for thoughtful websites

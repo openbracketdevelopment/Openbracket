@@ -147,6 +147,7 @@ export function createCrtModel(
   screen: THREE.Texture,
   grain: THREE.Texture,
   logo: THREE.Texture,
+  display: { emission?: THREE.Texture; powerGlyph?: THREE.Texture } = {},
 ) {
   const group = new THREE.Group()
   const housing = new THREE.Group()
@@ -176,7 +177,7 @@ export function createCrtModel(
   })
   const glassMaterial = new THREE.MeshPhysicalMaterial({
     map: screen,
-    emissiveMap: screen,
+    emissiveMap: display.emission ?? screen,
     emissive: "#ffffff",
     emissiveIntensity: 0.62,
     roughness: 0.34,
@@ -354,26 +355,58 @@ export function createCrtModel(
     scuff.rotation.z = angle
     scuff.castShadow = false
   }
-  const button = add(
-    new THREE.BoxGeometry(0.31, 0.28, 0.025),
-    plastic,
+  const powerMaterial = plastic.clone()
+  const buttonShape = new THREE.Shape(outline(0.265, 0.235, 0.025))
+  const buttonGeometry = new THREE.ExtrudeGeometry(buttonShape, {
+    depth: 0.018,
+    bevelEnabled: true,
+    bevelSize: 0.009,
+    bevelThickness: 0.009,
+    bevelSegments: 3,
+    steps: 1,
+  })
+  buttonGeometry.translate(0, 0, -0.009)
+  const button = add(buttonGeometry, powerMaterial, 1.82, 0.54, 1.399)
+  button.name = "recessed-power-button"
+  const recessShape = new THREE.Shape(outline(0.35, 0.32, 0.035))
+  recessShape.holes.push(new THREE.Path(outline(0.303, 0.273, 0.025)))
+  add(
+    new THREE.ExtrudeGeometry(recessShape, {
+      depth: 0.02,
+      bevelEnabled: true,
+      bevelSize: 0.004,
+      bevelThickness: 0.004,
+      bevelSegments: 2,
+      steps: 1,
+    }),
+    seam,
     1.82,
     0.54,
-    1.392,
+    1.377,
+  ).name = "power-button-recess"
+  const symbol = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.19, 0.19),
+    new THREE.MeshBasicMaterial({
+      map: display.powerGlyph ?? logo,
+      transparent: true,
+      depthWrite: false,
+    }),
   )
-  button.name = "recessed-power-button"
-  add(new THREE.BoxGeometry(0.33, 0.3, 0.012), seam, 1.82, 0.54, 1.386)
+  symbol.position.z = 0.02
+  symbol.castShadow = false
+  button.add(symbol)
+  const indicatorMaterial = new THREE.MeshStandardMaterial({
+    color: "#49a224",
+    emissive: "#33be16",
+    emissiveIntensity: 0.8,
+  })
   add(
     new THREE.BoxGeometry(0.085, 0.038, 0.012),
-    new THREE.MeshStandardMaterial({
-      color: "#49a224",
-      emissive: "#33be16",
-      emissiveIntensity: 1,
-    }),
+    indicatorMaterial,
     1.39,
     0.8,
     1.37,
-  )
+  ).name = "power-indicator"
   const badge = add(
     new THREE.PlaneGeometry(1.12, 0.22),
     new THREE.MeshBasicMaterial({
@@ -389,5 +422,14 @@ export function createCrtModel(
   )
   badge.castShadow = false
   badge.name = "printed-openbracket-logo"
-  return { group, plastic, bezel, seam, glassMaterial }
+  return {
+    group,
+    plastic,
+    bezel,
+    seam,
+    glassMaterial,
+    button,
+    powerMaterial,
+    indicatorMaterial,
+  }
 }

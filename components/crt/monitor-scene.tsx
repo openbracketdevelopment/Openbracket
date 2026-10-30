@@ -3,29 +3,28 @@ import { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js"
 import { createCrtModel } from "../../lib/crt-model"
+import {
+  bootMessages,
+  initialPower,
+  powerTiming,
+  screenEffect,
+  type PowerState,
+} from "../../lib/crt-power"
+import type { TexasClock } from "../../lib/texas-clock"
 
 export type MonitorSceneProps = {
   text: string
   blink: boolean
   active: boolean
   reduced: boolean
+  power: PowerState
+  clock: TexasClock | null
+  pressed: boolean
+  highlighted: boolean
 }
-export default function MonitorScene({
-  text,
-  blink,
-  active,
-  reduced,
-}: MonitorSceneProps) {
+export default function MonitorScene(props: MonitorSceneProps) {
   const host = useRef<HTMLDivElement>(null)
-  const update = useRef<
-    | ((
-        text: string,
-        blink: boolean,
-        active: boolean,
-        reduced: boolean,
-      ) => void)
-    | null
-  >(null)
+  const update = useRef<((value: MonitorSceneProps) => void) | null>(null)
   useEffect(() => {
     const element = host.current
     if (!element) return
@@ -69,7 +68,18 @@ export default function MonitorScene({
     const screenCanvas = document.createElement("canvas")
     screenCanvas.width = 1024
     screenCanvas.height = 768
-    const context = screenCanvas.getContext("2d")!
+    const surfaceContext = screenCanvas.getContext("2d")!
+    const contentCanvas = document.createElement("canvas")
+    contentCanvas.width = 1024
+    contentCanvas.height = 768
+    const context = contentCanvas.getContext("2d")!
+    const emissionCanvas = document.createElement("canvas")
+    emissionCanvas.width = 1024
+    emissionCanvas.height = 768
+    const emissionContext = emissionCanvas.getContext("2d")!
+    const emissionTexture = new THREE.CanvasTexture(emissionCanvas)
+    emissionTexture.colorSpace = THREE.SRGBColorSpace
+    emissionTexture.wrapS = emissionTexture.wrapT = THREE.ClampToEdgeWrapping
     const screenTexture = new THREE.CanvasTexture(screenCanvas)
     screenTexture.colorSpace = THREE.SRGBColorSpace
     screenTexture.wrapS = screenTexture.wrapT = THREE.ClampToEdgeWrapping
@@ -94,7 +104,15 @@ export default function MonitorScene({
     const logoContext = logoCanvas.getContext("2d")!
     const logoTexture = new THREE.CanvasTexture(logoCanvas)
     logoTexture.colorSpace = THREE.SRGBColorSpace
-    const model = createCrtModel(screenTexture, grain, logoTexture)
+    const powerCanvas = document.createElement("canvas")
+    powerCanvas.width = powerCanvas.height = 128
+    const powerContext = powerCanvas.getContext("2d")!
+    const powerTexture = new THREE.CanvasTexture(powerCanvas)
+    powerTexture.colorSpace = THREE.SRGBColorSpace
+    const model = createCrtModel(screenTexture, grain, logoTexture, {
+      emission: emissionTexture,
+      powerGlyph: powerTexture,
+    })
     scene.add(model.group)
     scene.add(new THREE.HemisphereLight("#e9efff", "#7a7060", 1.1))
     const key = new THREE.DirectionalLight("#fff6e8", 2.0)
@@ -141,23 +159,77 @@ export default function MonitorScene({
       disposed = false,
       frame = 0,
       cursorVisible = true
-    let current = {
+    let current: MonitorSceneProps = {
       text: "hello, human. :)",
       blink: false,
       active: false,
       reduced: false,
+      power: initialPower,
+      clock: null,
+      pressed: false,
+      highlighted: false,
+    }
+    const restZ = model.button.position.z
+    let buttonMotion = {
+      from: restZ,
+      to: restZ,
+      startedAt: 0,
+      duration: 0,
+      returning: false,
+    }
+    function positionButton(now: number) {
+      const t = buttonMotion.duration
+        ? Math.min(1, (now - buttonMotion.startedAt) / buttonMotion.duration)
+        : 1
+      const ease = buttonMotion.returning
+        ? 1 + 1.55 * (t - 1) ** 3 + 0.55 * (t - 1) ** 2
+        : 1 - (1 - t) ** 3
+      const z = buttonMotion.from + (buttonMotion.to - buttonMotion.from) * ease
+      if (z !== model.button.position.z) {
+        model.button.position.z = z
+        renderer.shadowMap.needsUpdate = true
+      }
+      return t < 1
     }
     function render() {
       frame = 0
       if (!usable || disposed || !visible || document.hidden) return
+      const now = performance.now()
+      const movingButton = positionButton(now)
+      const transition =
+        current.power.phase === "POWERING_OFF" ||
+        current.power.phase === "POWERING_ON"
+      if (transition) paintScreen(false)
       renderer.render(scene, camera)
+      const point = model.button
+        .localToWorld(new THREE.Vector3(0, 0, 0.02))
+        .project(camera)
+      const { width, height } = element!.getBoundingClientRect()
+      element!.parentElement?.style.setProperty(
+        "--power-x",
+        `${((point.x + 1) * width) / 2}px`,
+      )
+      element!.parentElement?.style.setProperty(
+        "--power-y",
+        `${((1 - point.y) * height) / 2}px`,
+      )
       element!.dataset.ready = "true"
+      const duration = current.reduced
+        ? powerTiming.reducedFade
+        : current.power.phase === "POWERING_OFF"
+          ? powerTiming.off
+          : powerTiming.on
+      if (
+        movingButton ||
+        (transition && now - current.power.startedAt < duration)
+      )
+        invalidate()
     }
     function invalidate() {
       if (!frame && !disposed && usable && visible && !document.hidden)
         frame = requestAnimationFrame(render)
     }
-    function paintScreen() {
+    function drawContent() {
       context.clearRect(0, 0, 1024, 768)
       context.fillStyle = "#070b0b"
       context.fillRect(0, 0, 1024, 768)
@@ -167,6 +239,22 @@ export default function MonitorScene({
       context.fillStyle = glow
       context.fillRect(0, 0, 1024, 768)
       context.textBaseline = "top"
+      if (
+        current.power.phase === "BOOTING" ||
+        current.power.phase === "POWERING_ON"
+      ) {
+        context.fillStyle = "#a7d6a5"
+        context.font = '27px "Courier New", monospace'
+        const messages = bootMessages.slice(
+          0,
+          current.power.phase === "POWERING_ON" ? 1 : current.power.bootStep,
+        )
+        messages.forEach((line, index) =>
+          context.fillText(line, 72, 82 + index * 49),
+        )
+        drawClock()
+        return
+      }
       context.font = '19px "Courier New", monospace'
       context.fillStyle = "#86ad8a"
       context.fillText("OPENBRACKET / HUMAN INTERFACE", 72, 65)
@@ -214,25 +302,112 @@ export default function MonitorScene({
       context.moveTo(72, 635)
       context.lineTo(952, 635)
       context.stroke()
+      drawClock()
+    }
+    function drawClock() {
+      context.shadowBlur = 0
+      context.strokeStyle = "#8ead88"
+      context.fillStyle = "#9bc795"
+      context.lineWidth = 2
+      const cx = 82,
+        cy = 672
+      if (current.clock?.isDay) {
+        context.beginPath()
+        context.arc(cx, cy, 7, 0, Math.PI * 2)
+        context.stroke()
+        for (let i = 0; i < 8; i++) {
+          const angle = (i * Math.PI) / 4
+          context.beginPath()
+          context.moveTo(cx + Math.cos(angle) * 11, cy + Math.sin(angle) * 11)
+          context.lineTo(cx + Math.cos(angle) * 15, cy + Math.sin(angle) * 15)
+          context.stroke()
+        }
+      } else if (current.clock) {
+        context.beginPath()
+        context.arc(cx, cy, 11, 0.5, Math.PI * 1.8)
+        context.quadraticCurveTo(cx - 4, cy + 2, cx + 10, cy + 5)
+        context.fill()
+      }
+      context.font = '26px "Courier New", monospace'
+      context.fillText(
+        current.clock?.label || "DFW, TX · --:-- -- CT",
+        110,
+        658,
+      )
       context.font = '16px "Courier New", monospace'
-      context.fillStyle = "#86ad8a"
-      context.fillText("OPEN TO POSSIBILITIES", 72, 658)
-      context.fillText("[ OB ]", 888, 658)
+      context.fillText("[ OB ]", 888, 663)
+    }
+    function paintScreen(requestFrame = true) {
+      drawContent()
+      const effect = screenEffect(
+        current.power.phase,
+        performance.now() - current.power.startedAt,
+        current.reduced,
+      )
+      emissionContext.globalAlpha = 1
+      emissionContext.fillStyle = "#000"
+      emissionContext.fillRect(0, 0, 1024, 768)
+      if (effect.image > 0) {
+        emissionContext.globalAlpha = effect.image
+        const height = 768 * effect.scaleY
+        emissionContext.drawImage(
+          contentCanvas,
+          0,
+          (768 - height) / 2,
+          1024,
+          height,
+        )
+        emissionContext.globalAlpha = 1
+      }
+      emissionContext.save()
+      emissionContext.shadowColor = "#b9e6b8"
+      emissionContext.shadowBlur = 18
+      if (effect.line > 0) {
+        emissionContext.globalAlpha = effect.line
+        emissionContext.fillStyle =
+          current.power.phase === "POWERING_OFF" ? "#e4f3e7" : "#91c891"
+        const width = 880 * effect.lineWidth
+        // Soft phosphor halo around a crisp white core, clipped by the glass mesh.
+        emissionContext.fillRect((1024 - width) / 2, 382, width, 4)
+        emissionContext.shadowBlur = 0
+        emissionContext.fillStyle = "#f1fff0"
+        emissionContext.fillRect((1024 - width) / 2, 383, width, 1.5)
+      }
+      if (effect.point > 0) {
+        emissionContext.globalAlpha = effect.point
+        const glow = emissionContext.createRadialGradient(
+          512,
+          384,
+          0,
+          512,
+          384,
+          14,
+        )
+        glow.addColorStop(0, "#edf9e9")
+        glow.addColorStop(1, "rgba(170,220,170,0)")
+        emissionContext.fillStyle = glow
+        emissionContext.fillRect(498, 370, 28, 28)
+      }
+      emissionContext.restore()
+      surfaceContext.fillStyle = "#07090a"
+      surfaceContext.fillRect(0, 0, 1024, 768)
+      surfaceContext.drawImage(emissionCanvas, 0, 0)
+      const glassContext = surfaceContext
       // A feathered area-light reflection follows the glass UVs without a rectangular edge.
-      context.save()
-      context.translate(320, 180)
-      context.rotate(-0.16)
-      context.scale(1, 0.64)
-      const reflection = context.createRadialGradient(0, 0, 25, 0, 0, 330)
+      glassContext.save()
+      glassContext.translate(320, 180)
+      glassContext.rotate(-0.16)
+      glassContext.scale(1, 0.64)
+      const reflection = glassContext.createRadialGradient(0, 0, 25, 0, 0, 330)
       reflection.addColorStop(0, "rgba(185,196,214,.10)")
       reflection.addColorStop(0.5, "rgba(185,196,214,.045)")
       reflection.addColorStop(1, "rgba(185,196,214,0)")
-      context.fillStyle = reflection
-      context.fillRect(-350, -350, 700, 700)
-      context.restore()
-      context.fillStyle = "rgba(0,0,0,.10)"
-      for (let y = 0; y < 768; y += 4) context.fillRect(0, y, 1024, 1)
-      const vignette = context.createRadialGradient(
+      glassContext.fillStyle = reflection
+      glassContext.fillRect(-350, -350, 700, 700)
+      glassContext.restore()
+      glassContext.fillStyle = "rgba(0,0,0,.10)"
+      for (let y = 0; y < 768; y += 4) glassContext.fillRect(0, y, 1024, 1)
+      const vignette = glassContext.createRadialGradient(
         512,
         384,
         280,
@@ -242,15 +417,30 @@ export default function MonitorScene({
       )
       vignette.addColorStop(0, "rgba(0,0,0,0)")
       vignette.addColorStop(1, "rgba(0,0,0,.24)")
-      context.fillStyle = vignette
-      context.fillRect(0, 0, 1024, 768)
+      glassContext.fillStyle = vignette
+      glassContext.fillRect(0, 0, 1024, 768)
       screenTexture.needsUpdate = true
-      invalidate()
+      emissionTexture.needsUpdate = true
+      model.glassMaterial.emissiveIntensity = effect.emission
+      if (requestFrame) invalidate()
     }
     const logoImage = new window.Image()
     function applyTheme() {
       const light = document.documentElement.dataset.theme === "light"
       model.plastic.color.set(light ? "#343b37" : "#bdb7aa")
+      model.powerMaterial.color.copy(model.plastic.color)
+      powerContext.clearRect(0, 0, 128, 128)
+      powerContext.strokeStyle = light ? "#cbd3c7" : "#41453b"
+      powerContext.lineWidth = 7
+      powerContext.lineCap = "round"
+      powerContext.beginPath()
+      powerContext.arc(64, 70, 32, -Math.PI / 2 + 0.6, Math.PI * 1.5 - 0.6)
+      powerContext.stroke()
+      powerContext.beginPath()
+      powerContext.moveTo(64, 18)
+      powerContext.lineTo(64, 62)
+      powerContext.stroke()
+      powerTexture.needsUpdate = true
       model.bezel.color.set(light ? "#202322" : "#332b29")
       model.seam.color.set(light ? "#1d2420" : "#746e60")
       logoContext.clearRect(0, 0, 640, 128)
@@ -287,9 +477,31 @@ export default function MonitorScene({
           paintScreen()
         }, 600)
     }
-    update.current = (text, blink, active, reduced) => {
-      current = { text, blink, active, reduced }
-      if (reduced && model.group.rotation.y !== 0) {
+    update.current = next => {
+      const now = performance.now()
+      if (
+        next.pressed !== current.pressed ||
+        next.reduced !== current.reduced
+      ) {
+        positionButton(now)
+        buttonMotion = {
+          from: model.button.position.z,
+          to: restZ - (next.pressed ? 0.024 : 0),
+          startedAt: now,
+          duration: next.reduced ? 0 : next.pressed ? 100 : 190,
+          returning: !next.pressed,
+        }
+      }
+      current = next
+      model.powerMaterial.emissive.set(
+        current.highlighted ? "#181a16" : "#000000",
+      )
+      model.powerMaterial.emissiveIntensity = current.highlighted ? 0.35 : 0
+      model.powerMaterial.roughness = current.pressed ? 0.92 : 0.82
+      const on = current.power.phase !== "OFF"
+      model.indicatorMaterial.color.set(on ? "#49a224" : "#aa2924")
+      model.indicatorMaterial.emissive.set(on ? "#33be16" : "#a01c17")
+      if (current.reduced && model.group.rotation.y !== 0) {
         model.group.rotation.y = 0
         renderer.shadowMap.needsUpdate = true
       }
@@ -380,6 +592,8 @@ export default function MonitorScene({
       geometries.forEach(geometry => geometry.dispose())
       materials.forEach(material => material.dispose())
       screenTexture.dispose()
+      emissionTexture.dispose()
+      powerTexture.dispose()
       logoTexture.dispose()
       grain.dispose()
       contactTexture.dispose()
@@ -391,7 +605,7 @@ export default function MonitorScene({
     }
   }, [])
   useEffect(() => {
-    update.current?.(text, blink, active, reduced)
-  }, [text, blink, active, reduced])
-  return <div className="crt-webgl" ref={host} />
+    update.current?.(props)
+  }, [props])
+  return <div className="crt-webgl" ref={host} aria-hidden="true" />
 }

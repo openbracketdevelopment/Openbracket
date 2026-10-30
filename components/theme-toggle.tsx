@@ -28,9 +28,11 @@ export default function ThemeToggle() {
     followSystem()
     system.addEventListener("change", followSystem)
     window.addEventListener("storage", stored)
+    window.addEventListener("openbracket-theme-change", sync)
     return () => {
       system.removeEventListener("change", followSystem)
       window.removeEventListener("storage", stored)
+      window.removeEventListener("openbracket-theme-change", sync)
     }
   }, [])
   function toggle() {
@@ -39,6 +41,7 @@ export default function ThemeToggle() {
     root.dataset.theme = next
     root.dataset.themePreference = next
     setDark(next === "dark")
+    window.dispatchEvent(new window.Event("openbracket-theme-change"))
     try {
       window.localStorage.setItem(themeStorageKey, next)
     } catch {

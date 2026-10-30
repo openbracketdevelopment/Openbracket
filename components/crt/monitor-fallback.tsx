@@ -1,11 +1,19 @@
+import { bootMessages, type PowerState } from "../../lib/crt-power"
+import type { TexasClock } from "../../lib/texas-clock"
 import { terminalPhrases } from "../../lib/typewriter"
 
 export default function MonitorFallback({
   text,
   blink,
+  power,
+  clock,
+  reduced,
 }: {
   text: string
   blink: boolean
+  power: PowerState
+  clock: TexasClock | null
+  reduced: boolean
 }) {
   const split = text.lastIndexOf(" ", 27)
   const lines =
@@ -106,38 +114,74 @@ export default function MonitorFallback({
           fill="#a8dca5"
           fontFamily="Courier New, monospace"
         >
-          <text fontSize="9">OPENBRACKET / HUMAN INTERFACE</text>
-          <path d="M0 13H394" stroke="#58765c" strokeWidth=".6" />
-          <text y="40" fontSize="10" fill="#799b7b">
-            OB/DOS v.01
-          </text>
-          <text y="60" fontSize="10" fill="#799b7b">
-            connection: human ↔ human
-          </text>
-          <text y="101" fontSize="12">
-            &gt; run good-things.exe
-          </text>
-          <text className="terminal-typed" y="145" fontSize="24">
-            {lines.map((line, index) => (
-              <tspan key={index} x="0" dy={index ? 32 : 0}>
-                {line}
-              </tspan>
-            ))}
-            <tspan className="terminal-caret" data-blink={blink}>
-              ▋
-            </tspan>
-          </text>
-          <text className="terminal-static" y="145" fontSize="24">
-            {terminalPhrases[0]}
-            <tspan>▋</tspan>
-          </text>
-          <text y="214" fontSize="8" fill="#799b7b">
-            YOUR NEXT CHAPTER STARTS HERE.
-          </text>
-          <path d="M0 245H394" stroke="#58765c" strokeWidth=".6" />
-          <text y="264" fontSize="7" fill="#799b7b">
-            OPEN TO POSSIBILITIES
-          </text>
+          <g
+            className="fallback-powered-content"
+            data-phase={power.phase}
+            data-reduced={reduced}
+          >
+            {power.phase === "BOOTING" || power.phase === "POWERING_ON" ? (
+              <g>
+                {bootMessages
+                  .slice(0, power.phase === "POWERING_ON" ? 1 : power.bootStep)
+                  .map((message, index) => (
+                    <text key={index} y={index * 23} fontSize="11">
+                      {message}
+                    </text>
+                  ))}
+              </g>
+            ) : (
+              <g>
+                <text fontSize="9">OPENBRACKET / HUMAN INTERFACE</text>
+                <path d="M0 13H394" stroke="#58765c" strokeWidth=".6" />
+                <text y="40" fontSize="10" fill="#799b7b">
+                  OB/DOS v.01
+                </text>
+                <text y="60" fontSize="10" fill="#799b7b">
+                  connection: human ↔ human
+                </text>
+                <text y="101" fontSize="12">
+                  &gt; run good-things.exe
+                </text>
+                <text className="terminal-typed" y="145" fontSize="24">
+                  {lines.map((line, index) => (
+                    <tspan key={index} x="0" dy={index ? 32 : 0}>
+                      {line}
+                    </tspan>
+                  ))}
+                  <tspan className="terminal-caret" data-blink={blink}>
+                    ▋
+                  </tspan>
+                </text>
+                <text className="terminal-static" y="145" fontSize="24">
+                  {terminalPhrases[0]}
+                  <tspan>▋</tspan>
+                </text>
+                <text y="214" fontSize="8" fill="#799b7b">
+                  YOUR NEXT CHAPTER STARTS HERE.
+                </text>
+              </g>
+            )}
+            <path d="M0 245H394" stroke="#58765c" strokeWidth=".6" />
+            <text y="264" fontSize="10" fill="#91ba8c">
+              {clock ? (clock.isDay ? "☀" : "☾") : ""}{" "}
+              {clock?.label || "DFW, TX · --:-- -- CT"}
+            </text>
+          </g>
+          <path
+            className="fallback-shutdown-line"
+            data-phase={power.phase}
+            d="M10 132H380"
+            stroke="#dfefdf"
+            strokeWidth="1.5"
+          />
+          <circle
+            className="fallback-shutdown-point"
+            data-phase={power.phase}
+            cx="195"
+            cy="132"
+            r="3"
+            fill="#edf9e9"
+          />
         </g>
       </g>
       <g transform="matrix(.8,.07,0,.8,177,580)">
@@ -153,12 +197,26 @@ export default function MonitorFallback({
           openbracket
         </text>
       </g>
+      <g className="fallback-button-face">
+        <path
+          d="M529 594L563 597L563 627L529 624Z"
+          fill="var(--monitor-front)"
+          stroke="var(--monitor-seam)"
+        />
+        <g
+          transform="translate(546 611)"
+          fill="none"
+          stroke="var(--monitor-label)"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        >
+          <path d="M-4-7a8 8 0 1 0 8 0M0-11V0" />
+        </g>
+      </g>
       <path
-        d="M529 594L563 597L563 627L529 624Z"
-        fill="var(--monitor-front)"
-        stroke="var(--monitor-seam)"
+        d="M505 569L515 570L515 575L505 574Z"
+        fill={power.phase === "OFF" ? "#b52b24" : "#39b71c"}
       />
-      <path d="M505 569L515 570L515 575L505 574Z" fill="#39b71c" />
     </svg>
   )
 }
