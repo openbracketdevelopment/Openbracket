@@ -1,0 +1,1 @@
+export default function NotFound() { return <main className="wrap section"><p className="eyebrow">404 / A WRONG TURN</p><h1>Let’s get you<br />back on track.</h1><a className="button" href="/">Back to OpenBracket ↗</a></main>; }
