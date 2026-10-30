@@ -30,7 +30,8 @@ function mark(x,y,scale, mono) {
  return `<g transform="translate(${x} ${y}) scale(${scale})">${[left,right].map(points => {
  if(mono) return polygon(points,mono);
  const back=points.map(([a,b])=>[a+dx,b+dy]);
- return polygon(back,'#822020') + points.map((p,i)=>{const q=points[(i+1)%points.length]; return polygon([p,q,[q[0]+dx,q[1]+dy],[p[0]+dx,p[1]+dy]],p[1]===q[1] ? (q[0]>p[0]?'#f17b70':'#922522') : '#a12726');}).join('') + polygon(points,'#de3736');
+ // Cull faces pointing away from the extrusion direction: hidden faces must not cover the solid top.
+ return polygon(back,'#822020') + points.map((p,i)=>{const q=points[(i+1)%points.length]; if ((q[0]-p[0]) * -dy + (q[1]-p[1]) * dx <= 0) return ''; return polygon([p,q,[q[0]+dx,q[1]+dy],[p[0]+dx,p[1]+dy]],p[1]===q[1] ? (q[0]>p[0]?'#f17b70':'#922522') : '#a12726');}).join('') + polygon(points,'#de3736');
  }).join('')}</g>`;
 }
 function svg(width,height,label,content) { return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-labelledby="title"><title id="title">OpenBracket — ${label}</title>${content}</svg>\n`; }

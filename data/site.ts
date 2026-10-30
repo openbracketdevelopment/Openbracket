@@ -1,5 +1,5 @@
 export const site = { name: 'OpenBracket', url: 'https://openbracket.io', email: 'tam@openbracket.io', phone: '817-845-1242', location: 'Dallas–Fort Worth, Texas' };
-export const navigation = [{ href: '/', label: 'Home' }, { href: '/services', label: 'Services' }, { href: '/about', label: 'About' }, { href: '/contact', label: 'Contact' }];
+export const navigation = [{ href: '/', label: 'Home' }, { href: '/services', label: 'Services' }, { href: '/about', label: 'About' }, { href: '/work', label: 'Work' }];
 export const clients: { name: string; asset: string; alt: string; url?: string }[] = [];
 export const services = [
  { id: 'websites', title: 'Websites & e-commerce', short: 'A clearer, more effective website.', description: 'Give people a clear picture of your business and an easier path to getting in touch or buying from you.', includes: 'Website design and development, existing-site redesigns, responsive layouts, content planning, and online stores.', next: 'Tell us what your current site needs to do better.' },

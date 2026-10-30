@@ -27,9 +27,9 @@ The original logo is preserved byte-for-byte at `public/images/ob-logo-reversed.
 { name: 'Approved client name', asset: '/images/clients/approved-logo.svg', alt: 'Approved client name', url: 'https://approved-client.example' }
 ```
 
-URL is optional. Obtain approval to publish each client name and logo. There are no portfolio entries, fabricated examples, testimonials, or social links.
+URL is optional. Obtain approval to publish each client name and logo. The Work page contains verified professional portfolio entries from Tam Pham’s existing site, with original screenshots, marks, and collaboration credits; these are distinct from the homepage’s direct-client logo list. No fabricated examples or testimonials are included.
 
-Routes: `/`, `/services`, `/about`, `/contact`, `/privacy`, `/sitemap`; generated `/sitemap.xml`, `/robots.txt`, and social image `/opengraph-image`; unknown paths return 404. Page metadata and canonical URLs are defined per route. Set the production origin in `data/site.ts` if it changes.
+Routes: `/`, `/services`, `/about`, `/work`, `/contact`, `/privacy`, `/sitemap`; generated `/sitemap.xml`, `/robots.txt`, and social image `/opengraph-image`; unknown paths return 404. Page metadata and canonical URLs are defined per route. Set the production origin in `data/site.ts` if it changes.
 
 ## Gatsby migration
 
@@ -60,7 +60,7 @@ Redis REST documentation: https://upstash.com/docs/redis/features/restapi
 
 ## Motion and accessibility
 
-The original CRT illustration is CSS/HTML; its decorative display is hidden from assistive technology. It needs no WebGL, external assets, Three.js, GSAP, or heavy lazy-loaded bundle. The complete static composition exists before hydration. Small window/block movements pause offscreen, when the tab is hidden, when manually paused, and with reduced motion. Pointer tilt is mouse-only and disabled with reduced motion. Screen texture stays inside the decorative monitor.
+The original CRT illustration is CSS/HTML; its decorative display is hidden from assistive technology. It needs no WebGL, external assets, Three.js, GSAP, or heavy lazy-loaded bundle. The complete static composition and an initial greeting exist before hydration. The green phosphor terminal types the phrases in `lib/typewriter.ts` in sequence: 85 ms per character, a 3-second hold, 40 ms per deleted character, and a 550 ms gap. Timing values live beside the editable phrases. The cursor is solid while editing and blinks only during pauses. A fixed-height area prevents layout shifts, and assistive technology receives a static equivalent instead of repeated announcements. Typing and cursor animation pause offscreen, when the tab is hidden, and when manually paused. Reduced motion shows a complete static greeting instead. The monitor uses a warm molded casing, recessed curved screen, vents, adjustment dials, and a power indicator. Pointer tilt is mouse-only and disabled with reduced motion. Screen texture stays inside the decorative monitor.
 
 The header has normal links and a mobile native modal dialog with focus containment, initial close-button focus, Escape handling, close control, focus restoration, and expanded state. Navigation remains readable in server HTML; without JavaScript, an additional normal-link navigation row is rendered. FAQ disclosure uses native details/summary. Visible focus, skip link, semantic headings, persistent form labels, field errors, and status feedback are implemented. Brand red `#DE3736` is retained in decorative accents. Text-bearing red surfaces use `#C52D2D` with white text (5.54:1 contrast); lighter red accents serve small text on dark surfaces, and darker red is used on off-white. No WCAG certification is claimed.
 
@@ -72,3 +72,19 @@ The header has normal links and a mobile native modal dialog with focus containm
 4. Complete browser/screenshot QA on mobile, tablet, and desktop, including keyboard menu operation, reduced motion, form feedback, and overflow. Browser automation was unavailable and native Chrome actions were repeatedly rejected because its UI state changed; automated HTTP/build/unit checks do not replace visual review.
 
 No public deployment or external test email is authorized by this task.
+
+## Light and dark themes
+
+The header switch works at desktop and mobile widths. `lib/theme.ts` supplies the inline pre-paint initialization script: use an explicit `openbracket-theme` localStorage value when present, otherwise follow the system preference. `components/theme-toggle.tsx` handles selection, system changes, blocked storage, and cross-tab synchronization. With no explicit choice, changes to the OS theme are followed; after a selection, that choice takes priority. Clear the stored key to return to system mode. If storage is blocked, the selected theme lasts for the current page.
+
+CSS tokens apply the chosen palette to all pages, menus, forms, and footer; both existing SVG wordmark variants are used. The CRT is CSS geometry rather than an external image or 3D asset. Its materials change to charcoal for the light theme while its green terminal remains dark. No separate monitor asset or inversion filter is required. Theme changes do not remount the terminal or restart its timer. Transitions are brief and disabled for reduced motion. Without JavaScript, CSS follows the system theme and the terminal displays a static greeting. If adding a strict CSP, authorize the bootstrap script with a nonce or hash; blocking it prevents saved-theme initialization before paint.
+
+DOM tests cover the complete animation sequence and timing, cursor states, pause/resume, hidden-tab suspension, reduced motion, cleanup under React Strict Mode, theme changes without restarting timers, system preference changes, explicit selection persistence, blocked storage at startup, and cross-tab changes. Real-browser mobile screenshots and keyboard navigation remain unverified because the browser access host is unavailable.
+
+## Work page and revised monitor
+
+`data/work.ts` contains five verified projects, their roles, source links, technologies, screenshots, and brand marks. All five original case studies were read before writing descriptions. `public/work/SOURCES.md` records provenance and attribution. Fidium is credited to Tam’s Amdocs work; Toro and EarthX retain their stated agency context. The source pages do not identify those agencies, so names are not inferred. ESPS and Cintra are presented as professional portfolio entries without claiming OpenBracket ownership. The logos appear under “Brands I’ve worked with,” with their original artwork and padded surfaces rather than filters or recoloring. Confirm any additional attribution with the owner before expanding these entries.
+
+The shared navigation replaces Contact with Work. The header’s “Let’s talk” CTA, footer Contact link, directory, and contact form remain. The compact theme switch follows the CTA in DOM and visual order; its sun/moon positions reflect the active theme. Existing persistence and system-following behavior are unchanged.
+
+The attached CRT reference informs the squared front casing, stepped deep right housing, side vents, recessed bezel, curved glass, green indicator, square power control, and low wedge base. CSS 3D planes provide visible housing depth without a second rendering library, animation loop, or new model dependency. The screen stays HTML and retains its existing typewriter state across theme changes. Light mode uses dark casing materials; dark mode uses warm casing materials. No external CRT asset is needed. The monitor renders statically without JavaScript; reduced motion freezes pointer tilt and shows a static greeting. Browser screenshots remain unverified because the browser access host is unavailable.
