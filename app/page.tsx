@@ -1,14 +1,183 @@
-import type { Metadata } from 'next';
-import Image from 'next/image';
-import HeroVisual from '../components/hero-visual';
-import ClosingCta from '../components/closing-cta';
-import { clients, process, services, site } from '../data/site';
-export const metadata: Metadata = { alternates: { canonical: '/' } };
-export default function Home() { return <main id="main">
- <section className="hero wrap"><div className="hero-grid"><div className="hero-copy"><p className="eyebrow"><span className="dot" /> SMALL STUDIO. OPEN POSSIBILITIES.</p><h1>Websites and<br />applications.<br /><em>Built around you.</em></h1><p className="intro">OpenBracket is a small development studio in Dallas–Fort Worth. We help businesses turn ideas into thoughtful websites and useful digital tools.</p><div className="hero-actions"><a className="button" href="/contact">Tell us about your project <span>↗</span></a><a className="text-link" href="/services">Explore our services ↓</a></div></div><HeroVisual /></div><div className="hero-foot mono"><span>BASED IN DALLAS–FORT WORTH</span><span>DESIGN + DEVELOPMENT + A LITTLE PERSONALITY</span><span>SCROLL TO EXPLORE ↓</span></div></section>
- {clients.length > 0 && <section className="clients wrap section"><h2 className="eyebrow">A few of the businesses we’ve worked with.</h2><div className="client-logos">{clients.map(client => { const logo = <Image src={client.asset} alt={client.alt} width={160} height={80} />; return client.url ? <a key={client.name} href={client.url}>{logo}</a> : <div key={client.name}>{logo}</div>; })}</div></section>}
- <section className="paper section"><div className="wrap"><div className="section-heading"><p className="eyebrow">01 / WHAT WE CAN BUILD TOGETHER</p><h2>Good ideas deserve<br /><em>a useful next step.</em></h2><p>For business owners, founders, and people who need a practical partner to make something happen.</p></div><div className="service-overview">{[services[0], services[1], services[3], services[5]].map((service, i) => <a href={`/services#${service.id}`} className="service-row" key={service.id}><span className="mono">0{i + 1}</span><div><h3>{service.short}</h3><p>{service.description}</p></div><span className="row-arrow">↗</span></a>)}</div><a href="/services" className="text-link">Explore all services, including design & mobile discovery ↗</a></div></section>
- <section className="section wrap"><div className="section-heading"><p className="eyebrow">02 / THE WAY WE WORK</p><h2>A little structure.<br /><em>A lot of collaboration.</em></h2><p>No mystery process. Just thoughtful steps, open conversations, and room to get the details right.</p></div><ol className="process">{process.map((step, i) => <li key={step.title}><span className="step-number mono">0{i + 1} <span>→</span></span><h3>{step.title}</h3><p>{step.text}</p></li>)}</ol></section>
- <section className="studio-strip"><div className="wrap split"><div className="bracket-poster" aria-hidden="true"><span>[</span><div>SMALL<br />BUT<br /><b>MIGHTY.</b></div><span>]</span></div><div><p className="eyebrow">03 / YOUR NEXT WEB PARTNER</p><h2>Direct collaboration.<br /><em>Thoughtful delivery.</em></h2><p>We’re a small studio with roots in advertising and web development. Design and development work together here, with practical decisions shaped around your business.</p><a href="/about" className="text-link">A little more about OpenBracket ↗</a></div></div></section><ClosingCta />
- <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({ '@context': 'https://schema.org', '@type': 'ProfessionalService', name: site.name, url: site.url, email: site.email, telephone: site.phone, areaServed: 'Dallas–Fort Worth', description: 'Website design and custom application development studio.' }) }} />
- </main>; }
+import type { Metadata } from "next"
+import Image from "next/image"
+import HeroVisual from "../components/hero-visual"
+import ClosingCta from "../components/closing-cta"
+import { clients, process, services, site } from "../data/site"
+export const metadata: Metadata = { alternates: { canonical: "/" } }
+export default function Home() {
+  return (
+    <main id="main">
+      <section className="hero wrap">
+        <div className="hero-grid">
+          <div className="hero-copy">
+            <p className="eyebrow">
+              <span className="dot" /> SMALL STUDIO. OPEN POSSIBILITIES.
+            </p>
+            <h1>
+              Websites and
+              <br />
+              applications.
+              <br />
+              <em>Built around you.</em>
+            </h1>
+            <p className="intro">
+              OpenBracket is a small development studio in Dallas–Fort Worth. We
+              help businesses turn ideas into thoughtful websites and useful
+              digital tools.
+            </p>
+            <div className="hero-actions">
+              <a className="button" href="/contact">
+                Tell us about your project <span>↗</span>
+              </a>
+              <a className="text-link" href="/services">
+                Explore our services ↓
+              </a>
+            </div>
+          </div>
+          <HeroVisual />
+        </div>
+        <div className="hero-foot mono">
+          <span>BASED IN DALLAS–FORT WORTH</span>
+          <span>DESIGN + DEVELOPMENT + A LITTLE PERSONALITY</span>
+          <span>SCROLL TO EXPLORE ↓</span>
+        </div>
+      </section>
+      {clients.length > 0 && (
+        <section className="clients wrap section">
+          <h2 className="eyebrow">
+            A few of the businesses we’ve worked with.
+          </h2>
+          <div className="client-logos">
+            {clients.map(client => {
+              const logo = (
+                <Image
+                  src={client.asset}
+                  alt={client.alt}
+                  width={160}
+                  height={80}
+                />
+              )
+              return client.url ? (
+                <a key={client.name} href={client.url}>
+                  {logo}
+                </a>
+              ) : (
+                <div key={client.name}>{logo}</div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+      <section className="paper section">
+        <div className="wrap">
+          <div className="section-heading">
+            <p className="eyebrow">01 / WHAT WE CAN BUILD TOGETHER</p>
+            <h2>
+              Good ideas deserve
+              <br />
+              <em>a useful next step.</em>
+            </h2>
+            <p>
+              For business owners, founders, and people who need a practical
+              partner to make something happen.
+            </p>
+          </div>
+          <div className="service-overview">
+            {[services[0], services[1], services[3], services[5]].map(
+              (service, i) => (
+                <a
+                  href={`/services#${service.id}`}
+                  className="service-row"
+                  key={service.id}
+                >
+                  <span className="mono">0{i + 1}</span>
+                  <div>
+                    <h3>{service.short}</h3>
+                    <p>{service.description}</p>
+                  </div>
+                  <span className="row-arrow">↗</span>
+                </a>
+              ),
+            )}
+          </div>
+          <a href="/services" className="text-link">
+            Explore all services, including design & mobile discovery ↗
+          </a>
+        </div>
+      </section>
+      <section className="section wrap">
+        <div className="section-heading">
+          <p className="eyebrow">02 / THE WAY WE WORK</p>
+          <h2>
+            A little structure.
+            <br />
+            <em>A lot of collaboration.</em>
+          </h2>
+          <p>
+            No mystery process. Just thoughtful steps, open conversations, and
+            room to get the details right.
+          </p>
+        </div>
+        <ol className="process">
+          {process.map((step, i) => (
+            <li key={step.title}>
+              <span className="step-number mono">
+                0{i + 1} <span>→</span>
+              </span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+      <section className="studio-strip">
+        <div className="wrap split">
+          <div className="bracket-poster" aria-hidden="true">
+            <span>[</span>
+            <div>
+              SMALL
+              <br />
+              BUT
+              <br />
+              <b>MIGHTY.</b>
+            </div>
+            <span>]</span>
+          </div>
+          <div>
+            <p className="eyebrow">03 / YOUR NEXT WEB PARTNER</p>
+            <h2>
+              Direct collaboration.
+              <br />
+              <em>Thoughtful delivery.</em>
+            </h2>
+            <p>
+              We’re a small studio with roots in advertising and web
+              development. Design and development work together here, with
+              practical decisions shaped around your business.
+            </p>
+            <a href="/about" className="text-link">
+              A little more about OpenBracket ↗
+            </a>
+          </div>
+        </div>
+      </section>
+      <ClosingCta />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ProfessionalService",
+            name: site.name,
+            url: site.url,
+            email: site.email,
+            telephone: site.phone,
+            areaServed: "Dallas–Fort Worth",
+            description:
+              "Website design and custom application development studio.",
+          }),
+        }}
+      />
+    </main>
+  )
+}

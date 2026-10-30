@@ -7,12 +7,17 @@
     "build": "next build --webpack",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test tests/*.test.ts"
+    "test": "tsx --test tests/*.test.ts",
+    "lint": "eslint . --max-warnings=0",
+    "lint:fix": "eslint . --fix --max-warnings=0",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
   },
   "dependencies": {
     "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
+    "three": "0.186.1",
     "zod": "^4.0.0"
   },
   "devDependencies": {
@@ -20,11 +25,16 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/three": "0.186.0",
+    "eslint": "10.13.0",
+    "eslint-config-next": "16.4.3",
+    "eslint-config-prettier": "10.1.8",
     "jsdom": "^26.1.0",
+    "prettier": "3.9.10",
     "tsx": "^4.20.0",
     "typescript": "^5.9.0"
   },
   "engines": {
-    "node": ">=20.9.0"
+    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
   }
 }

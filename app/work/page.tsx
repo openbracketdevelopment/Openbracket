@@ -1,13 +1,157 @@
-import type { Metadata } from 'next';
-import Image from 'next/image';
-import { projects, workBrands } from '../../data/work';
-import ClosingCta from '../../components/closing-cta';
-export const metadata: Metadata = { title: 'Work & professional experience', description: 'Selected websites, e-commerce experiences, and interface design from Tam Pham’s professional portfolio, with individual roles and collaboration credits.', alternates: { canonical: '/work' } };
-export default function Work() { return <main id="main">
- <section className="page-intro wrap work-intro"><p className="eyebrow">OPENBRACKET / SELECTED EXPERIENCE</p><h1>Different challenges.<br /><em>The same care.</em></h1><div className="work-intro-bottom"><p className="intro">From connected content platforms and online stores to product launches and mobile interfaces. A selection of websites and digital experiences I’ve helped build.</p><aside className="work-attribution"><span className="mono">A NOTE ON THE CREDITS</span><p>I’m Tam Pham. These projects come from my professional experience, including employment and agency collaborations. They are not presented as direct OpenBracket client engagements. My contribution and the available credits are noted below.</p></aside></div><nav className="anchor-links" aria-label="Featured projects">{projects.map(project => <a key={project.id} href={`#${project.id}`}>{project.name} ↓</a>)}</nav></section>
- <section className="wrap work-selection" aria-labelledby="selection-title"><div className="work-section-label"><h2 className="eyebrow" id="selection-title">01 / SELECTED PROJECTS</h2><span className="mono">{String(projects.length).padStart(2, '0')} ENTRIES</span></div><div className="work-grid">{projects.map((project, index) => <article className={`work-project ${index === 0 ? 'work-featured' : ''}`} id={project.id} key={project.id}>
-  <div className="project-window"><div className="window-bar"><span><span className="window-dots" aria-hidden="true">● ● ●</span> {String(index + 1).padStart(2, '0')} / {project.category.toUpperCase()}</span><span aria-hidden="true">↗</span></div><a href={project.caseStudy} className="project-image-link" aria-label={`Read ${project.name} case study on Tam’s portfolio`}><Image src={project.image} alt={project.imageAlt} width={project.width} height={project.height} sizes={index === 0 ? '(max-width: 760px) 100vw, 65vw' : '(max-width: 760px) 100vw, 50vw'} priority={index === 0} /></a></div>
-  <div className="project-copy"><p className="eyebrow">{project.context}</p><h2>{project.name}</h2><p className="project-purpose">{project.purpose}</p><div className="project-contribution"><h3 className="mono">MY CONTRIBUTION</h3><p>{project.contribution}</p><p className="project-role">{project.role}</p></div><ul className="project-technologies" aria-label={`${project.name} technologies`}>{project.technologies.map(technology => <li key={technology}>{technology}</li>)}</ul><div className="project-links"><a className="text-link" href={project.caseStudy}>Read the original case study ↗</a>{project.live && <a className="text-link" href={project.live}>{project.id === 'toro' ? 'Visit Toro' : 'Visit website'} ↗</a>}</div></div>
- </article>)}</div></section>
- <section className="work-brands section"><div className="wrap"><p className="eyebrow">02 / ACROSS MY PROFESSIONAL EXPERIENCE</p><h2>Brands I’ve <em>worked with.</em></h2><p className="brands-caption">Through individual projects, employment, and team collaborations. Original brand marks from my portfolio.</p><div className="work-logo-grid">{workBrands.map(brand => <div className={`work-logo work-logo-${brand.surface}`} key={brand.name}><Image src={brand.image} alt={brand.alt} width={brand.width} height={brand.height} sizes="(max-width: 760px) 40vw, 18vw" /></div>)}</div></div></section><ClosingCta />
- </main>; }
+import type { Metadata } from "next"
+import Image from "next/image"
+import { projects, workBrands } from "../../data/work"
+import ClosingCta from "../../components/closing-cta"
+export const metadata: Metadata = {
+  title: "Work & professional experience",
+  description:
+    "Selected websites, e-commerce experiences, and interface design from Tam Pham’s professional portfolio, with individual roles and collaboration credits.",
+  alternates: { canonical: "/work" },
+}
+export default function Work() {
+  return (
+    <main id="main">
+      <section className="page-intro wrap work-intro">
+        <p className="eyebrow">OPENBRACKET / SELECTED EXPERIENCE</p>
+        <h1>
+          Different challenges.
+          <br />
+          <em>The same care.</em>
+        </h1>
+        <div className="work-intro-bottom">
+          <p className="intro">
+            From connected content platforms and online stores to product
+            launches and mobile interfaces. A selection of websites and digital
+            experiences I’ve helped build.
+          </p>
+          <aside className="work-attribution">
+            <span className="mono">A NOTE ON THE CREDITS</span>
+            <p>
+              I’m Tam Pham. These projects come from my professional experience,
+              including employment and agency collaborations. They are not
+              presented as direct OpenBracket client engagements. My
+              contribution and the available credits are noted below.
+            </p>
+          </aside>
+        </div>
+        <nav className="anchor-links" aria-label="Featured projects">
+          {projects.map(project => (
+            <a key={project.id} href={`#${project.id}`}>
+              {project.name} ↓
+            </a>
+          ))}
+        </nav>
+      </section>
+      <section
+        className="wrap work-selection"
+        aria-labelledby="selection-title"
+      >
+        <div className="work-section-label">
+          <h2 className="eyebrow" id="selection-title">
+            01 / SELECTED PROJECTS
+          </h2>
+          <span className="mono">
+            {String(projects.length).padStart(2, "0")} ENTRIES
+          </span>
+        </div>
+        <div className="work-grid">
+          {projects.map((project, index) => (
+            <article
+              className={`work-project ${index === 0 ? "work-featured" : ""}`}
+              id={project.id}
+              key={project.id}
+            >
+              <div className="project-window">
+                <div className="window-bar">
+                  <span>
+                    <span className="window-dots" aria-hidden="true">
+                      ● ● ●
+                    </span>{" "}
+                    {String(index + 1).padStart(2, "0")} /{" "}
+                    {project.category.toUpperCase()}
+                  </span>
+                  <span aria-hidden="true">↗</span>
+                </div>
+                <a
+                  href={project.caseStudy}
+                  className="project-image-link"
+                  aria-label={`Read ${project.name} case study on Tam’s portfolio`}
+                >
+                  <Image
+                    src={project.image}
+                    alt={project.imageAlt}
+                    width={project.width}
+                    height={project.height}
+                    sizes={
+                      index === 0
+                        ? "(max-width: 760px) 100vw, 65vw"
+                        : "(max-width: 760px) 100vw, 50vw"
+                    }
+                    priority={index === 0}
+                  />
+                </a>
+              </div>
+              <div className="project-copy">
+                <p className="eyebrow">{project.context}</p>
+                <h2>{project.name}</h2>
+                <p className="project-purpose">{project.purpose}</p>
+                <div className="project-contribution">
+                  <h3 className="mono">MY CONTRIBUTION</h3>
+                  <p>{project.contribution}</p>
+                  <p className="project-role">{project.role}</p>
+                </div>
+                <ul
+                  className="project-technologies"
+                  aria-label={`${project.name} technologies`}
+                >
+                  {project.technologies.map(technology => (
+                    <li key={technology}>{technology}</li>
+                  ))}
+                </ul>
+                <div className="project-links">
+                  <a className="text-link" href={project.caseStudy}>
+                    Read the original case study ↗
+                  </a>
+                  {project.live && (
+                    <a className="text-link" href={project.live}>
+                      {project.id === "toro" ? "Visit Toro" : "Visit website"} ↗
+                    </a>
+                  )}
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="work-brands section">
+        <div className="wrap">
+          <p className="eyebrow">02 / ACROSS MY PROFESSIONAL EXPERIENCE</p>
+          <h2>
+            Brands I’ve <em>worked with.</em>
+          </h2>
+          <p className="brands-caption">
+            Through individual projects, employment, and team collaborations.
+            Original brand marks from my portfolio.
+          </p>
+          <div className="work-logo-grid">
+            {workBrands.map(brand => (
+              <div
+                className={`work-logo work-logo-${brand.surface}`}
+                key={brand.name}
+              >
+                <Image
+                  src={brand.image}
+                  alt={brand.alt}
+                  width={brand.width}
+                  height={brand.height}
+                  sizes="(max-width: 760px) 40vw, 18vw"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <ClosingCta />
+    </main>
+  )
+}

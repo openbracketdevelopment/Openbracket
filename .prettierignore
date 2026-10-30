@@ -1,4 +1,14 @@
-.cache
-package.json
+# Build output and generated files
+.next/
+out/
+coverage/
+node_modules/
+next-env.d.ts
 package-lock.json
-public
+
+# Original portfolio assets and generated brand artwork
+public/work/*
+!public/work/SOURCES.md
+public/brand/*.svg
+public/brand/*.png
+app/icon.svg

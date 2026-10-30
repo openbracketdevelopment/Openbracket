@@ -4,7 +4,7 @@ A responsive, retro computing inspired studio website built with Next.js App Rou
 
 ## Development
 
-Use Node 20.9+ (Node 22 LTS recommended).
+Use Node 22.13+ LTS (recommended), Node 20.19+, or Node 24+. The minimum is required by the development lint tooling.
 
 ```sh
 npm ci
@@ -41,15 +41,15 @@ Use a host supporting Next.js Node route handlers (Vercel or a Node server/conta
 
 Set server-only environment variables in your host's secret settings:
 
-| Variable | Configuration |
-| --- | --- |
-| `SITE_URL` | Exact public origin, no trailing slash, e.g. `https://openbracket.io`; use the exact origin for previews too. |
-| `RESEND_API_KEY` | Sending API key from Resend. |
-| `CONTACT_FROM` | Sender on a domain verified in Resend, e.g. `OpenBracket <hello@openbracket.io>`. Configure the provider's required DNS records first. |
-| `CONTACT_TO` | Studio recipient, normally `tam@openbracket.io`. |
-| `UPSTASH_REDIS_REST_URL` | HTTPS REST URL for your Upstash Redis instance. |
-| `UPSTASH_REDIS_REST_TOKEN` | Server-only Redis REST credential. |
-| `CONTACT_IP_HEADER` | The client IP header **overwritten by your trusted hosting proxy**. For Vercel, check its `x-vercel-forwarded-for` contract. For another host, configure a trusted reverse proxy to strip incoming copies and set its own header. Prevent direct access around that proxy. Do not blindly trust visitor-supplied forwarded headers. |
+| Variable                   | Configuration                                                                                                                                                                                                                                                                                                                       |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SITE_URL`                 | Exact public origin, no trailing slash, e.g. `https://openbracket.io`; use the exact origin for previews too.                                                                                                                                                                                                                       |
+| `RESEND_API_KEY`           | Sending API key from Resend.                                                                                                                                                                                                                                                                                                        |
+| `CONTACT_FROM`             | Sender on a domain verified in Resend, e.g. `OpenBracket <hello@openbracket.io>`. Configure the provider's required DNS records first.                                                                                                                                                                                              |
+| `CONTACT_TO`               | Studio recipient, normally `tam@openbracket.io`.                                                                                                                                                                                                                                                                                    |
+| `UPSTASH_REDIS_REST_URL`   | HTTPS REST URL for your Upstash Redis instance.                                                                                                                                                                                                                                                                                     |
+| `UPSTASH_REDIS_REST_TOKEN` | Server-only Redis REST credential.                                                                                                                                                                                                                                                                                                  |
+| `CONTACT_IP_HEADER`        | The client IP header **overwritten by your trusted hosting proxy**. For Vercel, check its `x-vercel-forwarded-for` contract. For another host, configure a trusted reverse proxy to strip incoming copies and set its own header. Prevent direct access around that proxy. Do not blindly trust visitor-supplied forwarded headers. |
 
 The production form fails closed with 503 if trusted IP or distributed rate limiting is unavailable. Local development uses a process-local limiter if Redis is absent. Production uses an atomic Redis INCR/EXPIRE script: five valid attempts per IP-derived identifier per ten-minute window. Keys contain a SHA-256 IP hash and expire after ten minutes; messages are never stored in Redis. A host/WAF limit on `/api/contact` can additionally bound malformed requests and provider abuse.
 
@@ -88,3 +88,16 @@ DOM tests cover the complete animation sequence and timing, cursor states, pause
 The shared navigation replaces Contact with Work. The header’s “Let’s talk” CTA, footer Contact link, directory, and contact form remain. The compact theme switch follows the CTA in DOM and visual order; its sun/moon positions reflect the active theme. Existing persistence and system-following behavior are unchanged.
 
 The attached CRT reference informs the squared front casing, stepped deep right housing, side vents, recessed bezel, curved glass, green indicator, square power control, and low wedge base. CSS 3D planes provide visible housing depth without a second rendering library, animation loop, or new model dependency. The screen stays HTML and retains its existing typewriter state across theme changes. Light mode uses dark casing materials; dark mode uses warm casing materials. No external CRT asset is needed. The monitor renders statically without JavaScript; reduced motion freezes pointer tilt and shows a static greeting. Browser screenshots remain unverified because the browser access host is unavailable.
+
+## Linting and formatting
+
+ESLint uses the Next.js Core Web Vitals and TypeScript configurations in `eslint.config.mjs`. `eslint-config-prettier` disables stylistic rules that conflict with Prettier. Existing formatting preferences are retained in `.prettierrc` (no semicolons and omitted parentheses for a single arrow-function parameter).
+
+```sh
+npm run lint         # Check all source code; warnings fail the check
+npm run lint:fix     # Apply available ESLint fixes
+npm run format       # Format all supported repository files
+npm run format:check # Verify formatting without changes
+```
+
+Formatting includes TypeScript, JavaScript, CSS, HTML, JSON configuration, and Markdown. Build output, dependency folders, framework-generated declarations, the npm-generated lockfile, original portfolio artwork, and generated brand SVGs are excluded. Edit `scripts/generate-brand.mjs` to change generated artwork. Editors with the ESLint and Prettier extensions will discover the repository configurations automatically.
