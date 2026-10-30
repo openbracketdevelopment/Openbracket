@@ -1,0 +1,3 @@
+import type { MetadataRoute } from 'next';
+import { site } from '../data/site';
+export default function sitemap(): MetadataRoute.Sitemap { return ['', '/services', '/about', '/contact', '/privacy', '/sitemap'].map(path => ({ url: `${site.url}${path}`, changeFrequency: 'monthly', priority: path === '' ? 1 : .7 })); }

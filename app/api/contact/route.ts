@@ -1,4 +1,7 @@
 import { contactSchema } from '../../../lib/contact';
+import { sendInquiry } from '../../../lib/email';
+import { allowContact } from '../../../lib/rate-limit';
+import { site } from '../../../data/site';
 export const runtime = 'nodejs';
 export async function POST(request: Request) {
   const origin = request.headers.get('origin');
@@ -24,21 +27,19 @@ export async function POST(request: Request) {
   try { form = await new Response(new Blob(chunks as BlobPart[]), { headers: { 'content-type': type } }).formData(); }
   catch { return Response.json({ error: 'Invalid form data.' }, { status: 400 }); }
   const result = contactSchema.safeParse(Object.fromEntries(form));
-  if (!result.success) return Response.json({ error: 'Check your name, email and message (10–5000 characters).' }, { status: 400 });
-  if (result.data.website) return Response.json({ ok: true });
-  const { RESEND_API_KEY, CONTACT_FROM, CONTACT_TO } = process.env;
-  if (!RESEND_API_KEY || !CONTACT_FROM || !CONTACT_TO) {
-    return Response.json({ error: 'Email is not configured. Please email tam@openbracket.io.' }, { status: 503 });
+  if (!result.success) {
+    const fields: Record<string, string> = {};
+    for (const issue of result.error.issues) fields[String(issue.path[0])] ||= issue.message;
+    return Response.json({ error: 'Please check the highlighted fields.', fields }, { status: 400 });
   }
-  const { name, email, company, message } = result.data;
+  if (result.data.website) return Response.json({ error: 'Unable to accept this submission.' }, { status: 400 });
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: CONTACT_FROM, to: [CONTACT_TO], reply_to: email, subject: 'New OpenBracket project inquiry', text: `Name: ${name}\nEmail: ${email}\nCompany: ${company || 'Not provided'}\n\n${message}` }),
-      signal: AbortSignal.timeout(10000),
-    });
-    if (!response.ok) return Response.json({ error: 'Email delivery failed. Please try again.' }, { status: 502 });
+    if (!await allowContact(request)) return Response.json({ error: 'Too many attempts. Please wait ten minutes or email us directly.' }, { status: 429, headers: { 'Retry-After': '600' } });
+  } catch { return Response.json({ error: `The form is temporarily unavailable. Please email ${site.email}.` }, { status: 503 }); }
+  try {
+    const delivery = await sendInquiry(result.data);
+    if (delivery === 'unavailable') return Response.json({ error: `The form is not configured yet. Please email ${site.email}.` }, { status: 503 });
+    if (delivery !== 'sent') return Response.json({ error: 'Email delivery failed. Please retry or email us directly.' }, { status: 502 });
     return Response.json({ ok: true });
-  } catch { return Response.json({ error: 'Email delivery unavailable. Please try again.' }, { status: 502 }); }
+  } catch { return Response.json({ error: 'Email delivery unavailable. Please retry or email us directly.' }, { status: 502 }); }
 }

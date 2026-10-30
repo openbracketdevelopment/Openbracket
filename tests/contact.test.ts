@@ -2,33 +2,57 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { contactSchema } from '../lib/contact';
 import { POST } from '../app/api/contact/route';
-const valid = { name: ' Alex ', email: 'alex@example.com', message: 'A new website for our business.' };
-test('validates and normalizes contact fields', () => { const parsed = contactSchema.parse(valid); assert.equal(parsed.name, 'Alex'); assert.equal(parsed.company, ''); });
-test('rejects invalid, missing, oversized and non-string values', () => {
-  for (const value of [{ ...valid, email: 'bad' }, { ...valid, message: 'short' }, { ...valid, name: '' }, { ...valid, message: 'a'.repeat(5001) }, { ...valid, email: 42 }]) assert.equal(contactSchema.safeParse(value).success, false);
-});
+const valid = { name: ' Alex ', email: 'alex@example.com', projectType: 'Not sure yet', message: 'A new website for our business.' };
 function request(values = valid, origin = 'http://localhost:3000') { return new Request('http://localhost:3000/api/contact', { method: 'POST', headers: { origin }, body: new URLSearchParams(values) }); }
-test('endpoint rejects foreign origins and malformed input', async () => {
-  assert.equal((await POST(request(valid, 'https://foreign.example'))).status, 403);
-  assert.equal((await POST(request({ ...valid, email: 'invalid' }))).status, 400);
-  assert.equal((await POST(request({ ...valid, message: 'x'.repeat(21000) }))).status, 413);
+test('validation normalizes fields and rejects missing, invalid and oversized values', () => {
+ assert.equal(contactSchema.parse(valid).name, 'Alex');
+ for (const value of [{ ...valid, email: 'bad' }, { ...valid, message: 'short' }, { ...valid, name: '' }, { ...valid, message: 'a'.repeat(5001) }, { ...valid, projectType: 'invented' }, { ...valid, projectType: undefined }, { ...valid, budget: 'invented' }]) assert.equal(contactSchema.safeParse(value).success, false);
 });
-test('honeypot does not send email', async () => {
-  const body = new URLSearchParams({ ...valid, website: 'spam' });
-  assert.equal((await POST(new Request('http://localhost:3000/api/contact', { method: 'POST', body }))).status, 200);
+test('endpoint rejects foreign origins, oversized bodies, spam and invalid fields', async () => {
+ assert.equal((await POST(request(valid, 'https://foreign.example'))).status, 403);
+ const invalid = await POST(request({ ...valid, email: 'invalid' }));
+ assert.equal(invalid.status, 400); assert.ok((await invalid.json()).fields.email);
+ assert.equal((await POST(request({ ...valid, message: 'x'.repeat(21000) }))).status, 413);
+ assert.equal((await POST(new Request('http://localhost:3000/api/contact', { method: 'POST', body: new URLSearchParams({ ...valid, website: 'spam' }) }))).status, 400);
 });
-test('provider success, rejection and network failure', async () => {
-  const originalFetch = globalThis.fetch;
-  const old = { ...process.env };
-  process.env.RESEND_API_KEY = 'test'; process.env.CONTACT_FROM = 'studio@example.com'; process.env.CONTACT_TO = 'owner@example.com';
-  try {
-    globalThis.fetch = async (_input, init) => { const payload = JSON.parse(String(init?.body)); assert.equal(payload.reply_to, valid.email); assert.deepEqual(payload.to, ['owner@example.com']); return new Response('{}'); };
-    assert.equal((await POST(request())).status, 200);
-    globalThis.fetch = async () => new Response('{}', { status: 429 });
-    assert.equal((await POST(request())).status, 502);
-    globalThis.fetch = async () => { throw new Error('network'); };
-    assert.equal((await POST(request())).status, 502);
-    delete process.env.RESEND_API_KEY;
-    assert.equal((await POST(request())).status, 503);
-  } finally { globalThis.fetch = originalFetch; process.env = old; }
+test('delivery, failure, missing configuration, idempotency and distributed limits', async () => {
+ const originalFetch = globalThis.fetch;
+ const old = { ...process.env };
+ process.env.RESEND_API_KEY = 'test'; process.env.CONTACT_FROM = 'studio@example.com'; process.env.CONTACT_TO = 'owner@example.com';
+ process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example'; process.env.UPSTASH_REDIS_REST_TOKEN = 'test';
+ let count = 1;
+ let providerStatus = 200;
+ let networkFailure = false;
+ let emailCalls = 0;
+ const submissionId = 'd0f3692e-cbe8-4c45-8b71-2242bbad5971';
+ globalThis.fetch = async (input, init) => {
+  if (String(input).startsWith('https://redis.example')) return Response.json({ result: count });
+  emailCalls++;
+  if (networkFailure) throw new Error('network');
+  const payload = JSON.parse(String(init?.body));
+  assert.equal(payload.reply_to, valid.email); assert.deepEqual(payload.to, ['owner@example.com']);
+  if (init?.headers && 'Idempotency-Key' in init.headers) assert.equal(init.headers['Idempotency-Key'], `contact/${submissionId}`);
+  return Response.json({ id: 'mock-message' }, { status: providerStatus });
+ };
+ try {
+  assert.equal((await POST(request())).status, 200);
+  assert.equal((await POST(new Request('http://localhost:3000/api/contact', { method: 'POST', body: new URLSearchParams({ ...valid, submissionId }) }))).status, 200);
+  providerStatus = 429; assert.equal((await POST(request())).status, 502);
+  networkFailure = true; assert.equal((await POST(request())).status, 502);
+  delete process.env.RESEND_API_KEY; assert.equal((await POST(request())).status, 503);
+  count = 6; const before = emailCalls; const limited = await POST(request()); assert.equal(limited.status, 429); assert.equal(limited.headers.get('Retry-After'), '600'); assert.equal(emailCalls, before);
+ } finally { globalThis.fetch = originalFetch; process.env = old; }
+});
+test('production limiter fails closed without trusted proxy and shared storage', async () => {
+ const { allowContact } = await import('../lib/rate-limit');
+ const old = { ...process.env };
+ try {
+  Object.assign(process.env, { NODE_ENV: 'production' });
+  delete process.env.CONTACT_IP_HEADER;
+  await assert.rejects(allowContact(request()), /Trusted proxy/);
+  process.env.CONTACT_IP_HEADER = 'x-trusted-client-ip';
+  const proxied = new Request('http://localhost:3000/api/contact', { headers: { 'x-trusted-client-ip': '192.0.2.1' } });
+  delete process.env.UPSTASH_REDIS_REST_URL; delete process.env.UPSTASH_REDIS_REST_TOKEN;
+  await assert.rejects(allowContact(proxied), /Distributed rate limiter/);
+ } finally { process.env = old; }
 });

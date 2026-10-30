@@ -1,8 +1,8 @@
 # OpenBracket
 
-Next.js App Router + strict TypeScript. The homepage is statically prerendered; only the contact form and optional hero interaction use client components. Plain CSS, simple props, no CMS or component framework.
+A responsive, retro computing inspired studio website built with Next.js App Router, React 19, strict TypeScript, and plain CSS. Core content is static HTML. Client code is limited to navigation, the form, and decorative hero interaction. No CMS, analytics, paid assets, or public deployment is included.
 
-## Run
+## Development
 
 Use Node 20.9+ (Node 22 LTS recommended).
 
@@ -12,33 +12,63 @@ cp .env.example .env.local
 npm run dev
 ```
 
-`npm run typecheck`, `npm test`, and `npm run build` validate the application. `npm start` serves the production build.
+- `npm run build`: production build and framework type checks.
+- `npm run typecheck`: standalone TypeScript check.
+- `npm test`: validation, API, email adapter, and rate-limit tests with mocked outbound requests. No email is sent.
+- `npm start`: production server after building.
 
-## Hosting and email
+## Content and assets
 
-Deploy to a host supporting Next.js App Router and Node route handlers (such as Vercel or a Node server/container). Build with `npm ci && npm run build`; start with `npm start`, binding the host's PORT. This is **not a static-export deployment**: `/api/contact` needs a server runtime and outbound HTTPS access to `api.resend.com`. Allow at least 15 seconds for the function, which has a 10-second provider timeout. Configure HTTPS and set `SITE_URL` to the exact public origin, without a trailing slash. Preview deployments need their own origin value.
+Edit `data/site.ts` for centralized contact information, services, process steps, navigation, and approved client logos. Page-specific copy lives in `app/{route}/page.tsx`. Tokens, layout, and decorative animation are in `app/globals.css`.
 
-Create a Resend account, verify the sending domain and its DNS records, create a sending API key, and set these **server-only** environment variables in the host's secret settings:
+The original logo is preserved byte-for-byte at `public/images/ob-logo-reversed.png`. No approved client logo assets were provided. The homepage client section is therefore hidden. Add approved files to `public/images/clients/` and entries to `clients` in `data/site.ts`:
 
-- `RESEND_API_KEY`: Resend sending key.
-- `CONTACT_FROM`: sender on the verified domain, e.g. `OpenBracket <hello@openbracket.io>`.
-- `CONTACT_TO`: destination inbox, e.g. `tam@openbracket.io`.
-- `SITE_URL`: canonical deployment origin, e.g. `https://openbracket.io`.
+```ts
+{ name: 'Approved client name', asset: '/images/clients/approved-logo.svg', alt: 'Approved client name', url: 'https://approved-client.example' }
+```
 
-Redeploy after changing configuration. No secret goes into browser code. Visitor email is used only as Reply-To; the sender and recipient are server controlled. Delivery uses plain text. Success means the provider accepted the email, not that it reached an inbox. Missing configuration returns 503, provider errors/timeouts return 502, and the form shows a retry/direct-email option without clearing entered data. Test delivery with a real inquiry after configuring DNS and secrets; no live email is sent by the tests.
+URL is optional. Obtain approval to publish each client name and logo. There are no portfolio entries, fabricated examples, testimonials, or social links.
 
-The endpoint accepts form data, validates fields with Zod, rejects oversized bodies (20 KB), checks browser Origin, and includes a honeypot. Configure host/WAF rate limits for `/api/contact` before public launch; no unreliable per-process rate counter is used. The form submits without JavaScript too, returning a JSON result from the endpoint.
+Routes: `/`, `/services`, `/about`, `/contact`, `/privacy`, `/sitemap`; generated `/sitemap.xml`, `/robots.txt`, and social image `/opengraph-image`; unknown paths return 404. Page metadata and canonical URLs are defined per route. Set the production origin in `data/site.ts` if it changes.
 
-Provider reference: https://resend.com/docs/api-reference/emails/send-email
-Framework reference: https://nextjs.org/docs/app
+## Gatsby migration
 
-## Deliberate Gatsby migration
+The original repository used Gatsby. The preceding rebuild migrated it to Next.js at the owner's request; this redesign retains Next.js conventions and the original brand asset, location, business positioning, service content, and contact details. Obsolete under-construction text and Gatsby sample metadata are removed. Former demo routes `/page-2`, `/using-typescript`, `/using-ssr`, and `/using-dsg` permanently redirect to `/` in `next.config.ts`. Other paths get a useful 404. Do not add new redirects without checking their content purpose.
 
-- `/` retains the studio name, Dallas/Fort Worth location, advertising/development background, contact details, and useful services. The obsolete under-construction copy is replaced.
-- Original `src/images/ob-logo-reversed.png` is preserved byte-for-byte at `public/images/ob-logo-reversed.png`. The black, white and red brand direction is retained. Unrelated Gatsby starter artwork is removed.
-- `/page-2`, `/using-typescript`, `/using-ssr`, `/using-dsg` were framework demos, not business pages. They now permanently redirect to `/`, including trailing-slash variants through Next's URL normalization. Unknown paths return a real 404.
-- Gatsby's sample metadata, dependencies, GraphQL layout, demo pages, and config are removed. The canonical production origin is `https://openbracket.io`; update `app/layout.tsx` if the domain changes.
+## Hosting and form configuration
 
-## Optional 3D
+Use a host supporting Next.js Node route handlers (Vercel or a Node server/container). Build: `npm ci && npm run build`; start: `npm start`. Supply the host's `PORT` as needed. Static export hosting cannot serve this contact endpoint. Allow outbound HTTPS to Resend and Upstash and a function duration of at least 20 seconds (3-second rate limiter plus 10-second email timeout).
 
-The bracket artwork renders in the initial HTML and works without JavaScript or WebGL. “Explore in 3D” dynamically imports a separate Three.js chunk only on request. WebGL failures preserve the static artwork and show a status. The scene respects reduced motion, resizes with its container, and disposes its GPU resources when turned off.
+Set server-only environment variables in your host's secret settings:
+
+| Variable | Configuration |
+| --- | --- |
+| `SITE_URL` | Exact public origin, no trailing slash, e.g. `https://openbracket.io`; use the exact origin for previews too. |
+| `RESEND_API_KEY` | Sending API key from Resend. |
+| `CONTACT_FROM` | Sender on a domain verified in Resend, e.g. `OpenBracket <hello@openbracket.io>`. Configure the provider's required DNS records first. |
+| `CONTACT_TO` | Studio recipient, normally `tam@openbracket.io`. |
+| `UPSTASH_REDIS_REST_URL` | HTTPS REST URL for your Upstash Redis instance. |
+| `UPSTASH_REDIS_REST_TOKEN` | Server-only Redis REST credential. |
+| `CONTACT_IP_HEADER` | The client IP header **overwritten by your trusted hosting proxy**. For Vercel, check its `x-vercel-forwarded-for` contract. For another host, configure a trusted reverse proxy to strip incoming copies and set its own header. Prevent direct access around that proxy. Do not blindly trust visitor-supplied forwarded headers. |
+
+The production form fails closed with 503 if trusted IP or distributed rate limiting is unavailable. Local development uses a process-local limiter if Redis is absent. Production uses an atomic Redis INCR/EXPIRE script: five valid attempts per IP-derived identifier per ten-minute window. Keys contain a SHA-256 IP hash and expire after ten minutes; messages are never stored in Redis. A host/WAF limit on `/api/contact` can additionally bound malformed requests and provider abuse.
+
+`lib/email.ts` isolates the Resend integration. The visitor's email is Reply-To, never the sender. Plain text is used and submitted content is not logged. The server returns success only after a successful provider response containing a message ID; this means acceptance, not inbox delivery. Provider failures return 502, absent configuration returns 503. The honeypot is rejected without claiming successful delivery. Bodies are capped at 20 KB; required fields, enums, and lengths are checked by shared Zod validation. Client errors are linked to visible labels, values survive failed submission, and a synchronous lock prevents duplicate clicks. A per-submission ID is passed to Resend for idempotency on retries. Editing a message creates a new attempt. The no-JavaScript form posts to the same endpoint and displays a plain JSON response; the email and phone alternatives work independently.
+
+Provider documentation: https://resend.com/docs/api-reference/emails/send-email
+Redis REST documentation: https://upstash.com/docs/redis/features/restapi
+
+## Motion and accessibility
+
+The original CRT illustration is CSS/HTML; its decorative display is hidden from assistive technology. It needs no WebGL, external assets, Three.js, GSAP, or heavy lazy-loaded bundle. The complete static composition exists before hydration. Small window/block movements pause offscreen, when the tab is hidden, when manually paused, and with reduced motion. Pointer tilt is mouse-only and disabled with reduced motion. Screen texture stays inside the decorative monitor.
+
+The header has normal links and a mobile native modal dialog with focus containment, initial close-button focus, Escape handling, close control, focus restoration, and expanded state. Navigation remains readable in server HTML; without JavaScript, an additional normal-link navigation row is rendered. FAQ disclosure uses native details/summary. Visible focus, skip link, semantic headings, persistent form labels, field errors, and status feedback are implemented. Brand red `#DE3736` is retained in decorative accents. Text-bearing red surfaces use `#C52D2D` with white text (5.54:1 contrast); lighter red accents serve small text on dark surfaces, and darker red is used on off-white. No WCAG certification is claimed.
+
+## Owner decisions before launch
+
+1. Configure and verify Resend sender DNS, recipient, Upstash, trusted proxy IP, and production origin. Authorize a real delivery test before sending any external email.
+2. Confirm the privacy copy, inquiry retention/deletion practices, hosting provider's logging/retention, and email provider arrangements. The policy deliberately does not invent a retention period or legal guarantees. Update it when adding analytics or other processors.
+3. Supply only approved client logos if that section is desired.
+4. Complete browser/screenshot QA on mobile, tablet, and desktop, including keyboard menu operation, reduced motion, form feedback, and overflow. Browser automation was unavailable and native Chrome actions were repeatedly rejected because its UI state changed; automated HTTP/build/unit checks do not replace visual review.
+
+No public deployment or external test email is authorized by this task.
