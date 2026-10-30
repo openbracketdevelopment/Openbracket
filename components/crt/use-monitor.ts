@@ -1,5 +1,11 @@
 "use client"
-import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react"
 import {
   activatePower,
   advancePower,
@@ -12,9 +18,9 @@ import {
   typingDelay,
 } from "../../lib/typewriter"
 import {
-  formatTexasTime,
-  nextMinuteDelay,
-  type TexasClock,
+  subscribeTexasClock,
+  getTexasClock,
+  getServerTexasClock,
 } from "../../lib/texas-clock"
 
 export function useMonitorPower(reduced: boolean) {
@@ -22,9 +28,10 @@ export function useMonitorPower(reduced: boolean) {
   const state = useRef(power)
   const activate = useCallback(() => {
     const next = activatePower(state.current, performance.now())
-    if (next === state.current) return
+    if (next === state.current) return false
     state.current = next
     setPower(next)
+    return true
   }, [])
   useEffect(() => {
     const delay = powerDelay(power, reduced)
@@ -87,22 +94,9 @@ export function useResumableTyping(enabled: boolean) {
 }
 
 export function useTexasClock() {
-  const [clock, setClock] = useState<TexasClock | null>(null)
-  useEffect(() => {
-    let timer: number | undefined
-    function refresh() {
-      window.clearTimeout(timer)
-      if (document.hidden) return
-      const now = Date.now()
-      setClock(formatTexasTime(new Date(now)))
-      timer = window.setTimeout(refresh, nextMinuteDelay(now))
-    }
-    refresh()
-    document.addEventListener("visibilitychange", refresh)
-    return () => {
-      window.clearTimeout(timer)
-      document.removeEventListener("visibilitychange", refresh)
-    }
-  }, [])
-  return clock
+  return useSyncExternalStore(
+    subscribeTexasClock,
+    getTexasClock,
+    getServerTexasClock,
+  )
 }

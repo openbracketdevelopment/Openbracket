@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Image from "next/image"
+import HeroLocation from "../components/hero-location"
 import HeroVisual from "../components/hero-visual"
 import ClosingCta from "../components/closing-cta"
 import { clients, process, services, site } from "../data/site"
@@ -37,7 +38,7 @@ export default function Home() {
           <HeroVisual />
         </div>
         <div className="hero-foot mono">
-          <span>BASED IN DALLAS–FORT WORTH</span>
+          <HeroLocation />
           <span>DESIGN + DEVELOPMENT + A LITTLE PERSONALITY</span>
           <span>SCROLL TO EXPLORE ↓</span>
         </div>

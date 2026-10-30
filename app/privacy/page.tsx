@@ -50,11 +50,12 @@ export default function Privacy() {
       <h2>Analytics and cookies</h2>
       <p>
         No analytics, advertising trackers, or marketing cookies are configured
-        in this application. If you select a light or dark theme, your browser
-        stores that preference locally so it can be remembered on future visits.
-        This preference is not sent to an analytics service. Hosting
-        infrastructure may process technical request data. This description will
-        need updating if additional services are introduced.
+        in this application. Your browser stores your theme preference locally.
+        Sound starts automatically when browser playback permissions allow it;
+        muting applies to the current page session. These settings are not sent
+        to an analytics service. Hosting infrastructure may process technical
+        request data. This description will need updating if additional services
+        are introduced.
       </p>
       <h2>Questions and requests</h2>
       <p>

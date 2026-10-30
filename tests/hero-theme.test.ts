@@ -1,10 +1,11 @@
-import { test } from "node:test"
+import { test, mock } from "node:test"
 import assert from "node:assert/strict"
 import { JSDOM } from "jsdom"
 import { createElement, act, StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import ThemeToggle from "../components/theme-toggle"
 import HeroVisual from "../components/hero-visual"
+import { CrtAudio } from "../lib/crt-audio"
 import PowerControl from "../components/crt/power-control"
 import {
   useResumableTyping,
@@ -499,7 +500,11 @@ test("Texas clock schedules minute boundaries, suspends while hidden and refresh
   }
   const root = createRoot(env.window.document.getElementById("test")!)
   try {
-    act(() => root.render(createElement(Clock)))
+    act(() =>
+      root.render(
+        createElement("div", null, createElement(Clock), createElement(Clock)),
+      ),
+    )
     assert.match(env.window.document.body.textContent!, /10:42 AM CDT/)
     assert.equal([...timers.values()][0].delay, 30000)
     Object.defineProperty(env.window.document, "hidden", {
@@ -569,7 +574,7 @@ test("hero power cycles preserve manual pause and reject repeated activations th
     })
     const assembly = env.window.document.querySelector(".monitor-assembly")!
     assert.equal(assembly.getAttribute("data-power"), "POWERING_OFF")
-    step(720)
+    step(540)
     assert.equal(assembly.getAttribute("data-power"), "OFF")
     act(() => power.click())
     step(850)
@@ -591,6 +596,99 @@ test("hero power cycles preserve manual pause and reject repeated activations th
     )
   } finally {
     act(() => root.unmount())
+    assert.equal(timers.size, 0)
+    env.cleanup()
+  }
+})
+
+test("sound defaults on when permitted, follows typing events, and cues accepted power only once", async () => {
+  const env = environment()
+  const root = createRoot(env.window.document.getElementById("test")!)
+  const clicks: string[] = []
+  const cues: boolean[] = []
+  const enable = mock.method(CrtAudio.prototype, "enable", async () => true)
+  const click = mock.method(CrtAudio.prototype, "type", (character: string) => {
+    clicks.push(character)
+  })
+  const powerCue = mock.method(CrtAudio.prototype, "power", (on: boolean) => {
+    cues.push(on)
+  })
+  let id = 0
+  const timers = new Map<number, { callback: () => void; delay: number }>()
+  env.window.setTimeout = ((callback: () => void, delay: number) => {
+    timers.set(++id, { callback, delay })
+    return id
+  }) as typeof env.window.setTimeout
+  env.window.clearTimeout = key => {
+    if (key !== undefined) timers.delete(key)
+  }
+  function tick() {
+    const entry = [...timers].find(([, timer]) => timer.delay <= 3000)
+    assert.ok(entry)
+    timers.delete(entry[0])
+    act(() => entry[1].callback())
+  }
+  try {
+    env.window.localStorage.setItem("openbracket-sound", "off")
+    await act(async () => root.render(createElement(HeroVisual)))
+    const sound =
+      env.window.document.querySelector<HTMLButtonElement>(".sound-toggle")!
+    const terminal = env.window.document.querySelector<HTMLButtonElement>(
+      ".terminal-controls button",
+    )!
+    assert.match(terminal.textContent!, /Pause terminal/)
+    assert.equal(sound.getAttribute("aria-pressed"), "true")
+    assert.equal(sound.getAttribute("aria-label"), "Mute sound")
+    assert.match(sound.textContent!, /Sound off/)
+    assert.equal(
+      enable.mock.callCount(),
+      1,
+      "fresh load ignores an old mute preference and attempts playback without a power cue",
+    )
+    assert.equal(cues.length, 0, "initial load has no power cue")
+    tick()
+    assert.deepEqual(clicks, ["h"])
+    const text =
+      env.window.document.querySelector(".terminal-typed")!.textContent
+    await act(async () => {
+      sound.click()
+    })
+    assert.equal(sound.getAttribute("aria-pressed"), "false")
+    assert.match(sound.textContent!, /Sound on/)
+    assert.equal(
+      env.window.document.querySelector(".terminal-typed")!.textContent,
+      text,
+    )
+    assert.deepEqual(clicks, ["h"], "unmute never replays a character")
+    while (
+      !env.window.document
+        .querySelector(".terminal-typed")!
+        .textContent!.startsWith(terminalPhrases[0])
+    )
+      tick()
+    tick() // holding
+    const count = clicks.length
+    tick() // deleting phase
+    tick() // remove a character
+    assert.equal(clicks.length, count, "no clicks on hold/deletion")
+    const power = env.window.document.querySelector<HTMLButtonElement>(
+      ".monitor-power-control",
+    )!
+    act(() => {
+      power.click()
+      power.click()
+      power.click()
+    })
+    assert.deepEqual(
+      cues,
+      [false],
+      "only the accepted power action produces a cue",
+    )
+  } finally {
+    act(() => root.unmount())
+    enable.mock.restore()
+    click.mock.restore()
+    powerCue.mock.restore()
     assert.equal(timers.size, 0)
     env.cleanup()
   }

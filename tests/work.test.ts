@@ -37,9 +37,14 @@ test("Work appears in shared navigation and both sitemaps; contact remains avail
   assert.ok(header.includes("<BrandLogo />"))
   const footer = new JSDOM(renderToStaticMarkup(createElement(Footer))).window
     .document
-  assert.ok(
-    footer.querySelector('a[aria-label="OpenBracket home"] svg.brand-logo'),
-  )
+  for (const theme of ["dark", "light"]) {
+    const logo = footer.querySelector<HTMLImageElement>(
+      `a[aria-label="OpenBracket home"] img.footer-logo-${theme}`,
+    )!
+    assert.ok(logo.src.endsWith(`/brand/openbracket-stacked-${theme}.svg`))
+    assert.equal(logo.width / logo.height, 460 / 330)
+    assert.ok(logo.alt.includes("OpenBracket"))
+  }
 })
 
 test("Work renders original case-study links, credits and proportioned local assets", () => {
@@ -49,8 +54,8 @@ test("Work renders original case-study links, credits and proportioned local ass
     doc.querySelector(".work-attribution")!.textContent!,
     /not presented as direct OpenBracket client engagements/,
   )
-  assert.equal(doc.querySelectorAll(".work-project").length, 5)
-  assert.equal(doc.querySelectorAll(".work-logo").length, 5)
+  assert.equal(doc.querySelectorAll(".work-project").length, 6)
+  assert.equal(doc.querySelectorAll(".work-logo").length, 6)
   for (const project of projects) {
     const article = doc.getElementById(project.id)!
     assert.ok(article.querySelector(`a[href="${project.caseStudy}"]`))
@@ -68,6 +73,16 @@ test("Work renders original case-study links, credits and proportioned local ass
         .textContent!.includes(project.role),
     )
   }
+  assert.deepEqual(
+    projects.map(project => project.id),
+    ["fidium", "diageo", "toro", "esps-parts", "earthx", "cintra"],
+  )
+  assert.match(doc.getElementById("diageo")!.textContent!, /Okta/)
+  assert.ok(doc.getElementById("diageo")!.querySelector("details img"))
+  assert.equal(
+    projects.find(project => project.id === "earthx")!.image,
+    "/work/earthx-screen-wall-perspective-2.jpg",
+  )
   assert.match(doc.getElementById("fidium")!.textContent!, /Amdocs/)
   for (const id of ["toro", "earthx"])
     assert.match(doc.getElementById(id)!.textContent!, /Agency collaboration/)

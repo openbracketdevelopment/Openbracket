@@ -10,8 +10,22 @@ export const initialPower: PowerState = {
   startedAt: 0,
   bootStep: 0,
 }
+// Separate stages and decay curves keep the power loss quick and slightly uneven.
+export const shutdownMotion = {
+  collapse: 180,
+  lineHold: 50,
+  contract: 160,
+  afterglow: 150,
+  collapseExponent: 3.4,
+  contractExponent: 2.8,
+  afterglowExponent: 1.8,
+}
 export const powerTiming = {
-  off: 720,
+  off:
+    shutdownMotion.collapse +
+    shutdownMotion.lineHold +
+    shutdownMotion.contract +
+    shutdownMotion.afterglow,
   on: 850,
   bootLine: 330,
   bootHold: 1000,
@@ -96,27 +110,36 @@ export function screenEffect(
     return { ...result, image: alpha, emission: 0.62 * alpha }
   }
   if (phase === "POWERING_OFF") {
-    if (elapsed < 240) {
-      const t = Math.max(0, elapsed / 240)
+    const { collapse, lineHold, contract, afterglow } = shutdownMotion
+    const contractionStart = collapse + lineHold
+    const afterglowStart = contractionStart + contract
+    if (elapsed < collapse) {
+      const t = Math.max(0, elapsed / collapse)
       return {
         ...result,
         image: 1 - 0.25 * t,
-        scaleY: Math.max(0.004, (1 - t) ** 3),
+        scaleY: Math.max(0.004, (1 - t) ** shutdownMotion.collapseExponent),
         line: Math.max(0, (t - 0.45) / 0.55),
         emission: 0.62 + 0.2 * t,
       }
     }
-    if (elapsed < 580) {
-      const contraction = Math.max(0, (elapsed - 380) / 200)
+    if (elapsed < afterglowStart) {
+      const contraction = Math.max(0, (elapsed - contractionStart) / contract)
       return {
         ...result,
         image: 0,
         line: 1,
-        lineWidth: Math.max(0.006, (1 - contraction) ** 2),
+        lineWidth: Math.max(
+          0.006,
+          (1 - contraction) ** shutdownMotion.contractExponent,
+        ),
         emission: 0.82,
       }
     }
-    const point = Math.max(0, 1 - (elapsed - 580) / 140)
+    const decay = Math.max(0, (elapsed - afterglowStart) / afterglow)
+    const point =
+      Math.max(0, 1 - decay) ** shutdownMotion.afterglowExponent *
+      (0.72 + 0.28 * Math.exp(-decay * 14))
     return { ...result, image: 0, point, emission: 0.75 * point }
   }
 

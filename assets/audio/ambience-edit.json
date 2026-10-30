@@ -1,0 +1,10 @@
+{
+  "source": "background-noise.mp3",
+  "source_sha256": "d59b1c43ae33b07d8e7e73c87d2c0fd8ce5e3c65624595f8896005b648f857aa",
+  "source_range_seconds": [10, 41],
+  "crossfade_seconds": 1,
+  "loop_seconds": 30,
+  "output": "room-ambience.mp3",
+  "bytes": 240787,
+  "audition": "Not available; waveform/level analysis only"
+}

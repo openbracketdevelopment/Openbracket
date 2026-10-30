@@ -10,6 +10,8 @@ import {
   powerDelay,
   screenEffect,
   bootMessages,
+  shutdownMotion,
+  powerTiming,
 } from "../lib/crt-power"
 import { formatTexasTime, nextMinuteDelay } from "../lib/texas-clock"
 
@@ -17,7 +19,7 @@ test("power ignores busy activation and completes shutdown, warm-up and sequenti
   let state = activatePower(initialPower, 100)
   assert.equal(state.phase, "POWERING_OFF")
   assert.equal(activatePower(state, 110), state)
-  assert.equal(powerDelay(state, false), 720)
+  assert.equal(powerDelay(state, false), 540)
   state = advancePower(state, 700)
   assert.equal(state.phase, "OFF")
   assert.equal(powerDelay(state, false), null)
@@ -62,12 +64,14 @@ test("reduced motion keeps every boot command readable with gentle power fades",
 })
 
 test("screen content collapses to a shrinking line and point, then starts with a distinct warm-up", () => {
-  assert.ok(screenEffect("POWERING_OFF", 200, false).scaleY < 0.1)
-  const line = screenEffect("POWERING_OFF", 480, false)
+  assert.ok(screenEffect("POWERING_OFF", 130, false).scaleY < 0.1)
+  const line = screenEffect("POWERING_OFF", 310, false)
   assert.equal(line.image, 0)
   assert.equal(line.line, 1)
-  assert.equal(line.lineWidth, 0.25)
-  assert.ok(screenEffect("POWERING_OFF", 650, false).point > 0)
+  assert.ok(
+    Math.abs(line.lineWidth - 0.5 ** shutdownMotion.contractExponent) < 1e-6,
+  )
+  assert.ok(screenEffect("POWERING_OFF", 450, false).point > 0)
   assert.equal(screenEffect("OFF", 0, false).emission, 0)
   assert.equal(screenEffect("POWERING_ON", 100, false).image, 0)
   assert.ok(screenEffect("POWERING_ON", 300, false).scaleY < 0.04)
@@ -122,4 +126,14 @@ test("boot renders commands before initialization in both motion modes without e
     assert.doesNotMatch(launching, /saved typing position|terminal-typed/)
     assert.match(render(bootMessages.length), /good-things.exe initialized\./)
   }
+})
+
+test("shutdown stages fit a short hardware decay with no residual emission", () => {
+  assert.equal(powerTiming.off, 540)
+  assert.equal(screenEffect("POWERING_OFF", 200, false).lineWidth, 1)
+  const point = screenEffect("POWERING_OFF", 400, false)
+  assert.equal(point.image, 0)
+  assert.equal(point.line, 0)
+  assert.ok(point.point > screenEffect("POWERING_OFF", 470, false).point)
+  assert.equal(screenEffect("POWERING_OFF", powerTiming.off, false).emission, 0)
 })

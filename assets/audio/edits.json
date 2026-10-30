@@ -1,0 +1,62 @@
+[
+  {
+    "source": "typing.mp3",
+    "source_sha256": "203095064b3ad67543e75dd52ddfb5e5f7277b51b800ee5d76939db9bba00800",
+    "output": "key-1.wav",
+    "source_start": 2.416,
+    "source_end": 2.512,
+    "duration": 0.09600907029478457,
+    "gain_db": -3.67,
+    "peak_dbfs": -11.0,
+    "rms_dbfs": -34.78,
+    "bytes": 4278
+  },
+  {
+    "source": "typing.mp3",
+    "source_sha256": "203095064b3ad67543e75dd52ddfb5e5f7277b51b800ee5d76939db9bba00800",
+    "output": "key-2.wav",
+    "source_start": 3.208,
+    "source_end": 3.298,
+    "duration": 0.09002267573696145,
+    "gain_db": 1.04,
+    "peak_dbfs": -11.0,
+    "rms_dbfs": -32.38,
+    "bytes": 4014
+  },
+  {
+    "source": "typing.mp3",
+    "source_sha256": "203095064b3ad67543e75dd52ddfb5e5f7277b51b800ee5d76939db9bba00800",
+    "output": "key-3.wav",
+    "source_start": 4.108,
+    "source_end": 4.198,
+    "duration": 0.09002267573696145,
+    "gain_db": 3.09,
+    "peak_dbfs": -11.0,
+    "rms_dbfs": -31.85,
+    "bytes": 4014
+  },
+  {
+    "source": "turn-on.mp3",
+    "source_sha256": "1db3c24be98369a13b8dd6d73f37f0ddd156b47703eb11022b53913a2ae2696b",
+    "output": "power-on.wav",
+    "source_start": 0.185,
+    "source_end": 0.725,
+    "duration": 0.54,
+    "gain_db": -3.64,
+    "peak_dbfs": -7.0,
+    "rms_dbfs": -32.4,
+    "bytes": 23858
+  },
+  {
+    "source": "turn-off.mp3",
+    "source_sha256": "5e69634fb35ba2d64b0d55aa586ebd8d17984bef1ce234acc7c74fcfbd332472",
+    "output": "power-off.wav",
+    "source_start": 0.085,
+    "source_end": 0.405,
+    "duration": 0.32,
+    "gain_db": -4.49,
+    "peak_dbfs": -7.0,
+    "rms_dbfs": -31.78,
+    "bytes": 14156
+  }
+]

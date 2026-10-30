@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react"
 import type { Metadata } from "next"
 import Image from "next/image"
 import { projects, workBrands } from "../../data/work"
@@ -56,11 +57,7 @@ export default function Work() {
         </div>
         <div className="work-grid">
           {projects.map((project, index) => (
-            <article
-              className={`work-project ${index === 0 ? "work-featured" : ""}`}
-              id={project.id}
-              key={project.id}
-            >
+            <article className="work-project" id={project.id} key={project.id}>
               <div className="project-window">
                 <div className="window-bar">
                   <span>
@@ -82,12 +79,8 @@ export default function Work() {
                     alt={project.imageAlt}
                     width={project.width}
                     height={project.height}
-                    sizes={
-                      index === 0
-                        ? "(max-width: 760px) 100vw, 65vw"
-                        : "(max-width: 760px) 100vw, 50vw"
-                    }
-                    priority={index === 0}
+                    sizes="(max-width: 760px) 100vw, 50vw"
+                    priority={index < 2}
                   />
                 </a>
               </div>
@@ -108,6 +101,26 @@ export default function Work() {
                     <li key={technology}>{technology}</li>
                   ))}
                 </ul>
+                {"gallery" in project && project.gallery && (
+                  <details className="project-gallery">
+                    <summary>View desktop + mobile screens</summary>
+                    {project.gallery.map(screen => (
+                      <a
+                        key={screen.image}
+                        href={project.caseStudy}
+                        aria-label={`Read ${project.name} case study`}
+                      >
+                        <Image
+                          src={screen.image}
+                          alt={screen.alt}
+                          width={screen.width}
+                          height={screen.height}
+                          sizes="(max-width: 760px) 100vw, 50vw"
+                        />
+                      </a>
+                    ))}
+                  </details>
+                )}
                 <div className="project-links">
                   <a className="text-link" href={project.caseStudy}>
                     Read the original case study ↗
@@ -133,19 +146,42 @@ export default function Work() {
             Through individual projects, employment, and team collaborations.
             Original brand marks from my portfolio.
           </p>
+          <svg
+            className="brand-color-filters"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <defs>
+              <filter
+                id="brand-white-knockout"
+                colorInterpolationFilters="sRGB"
+              >
+                <feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  .2126 .7152 .0722 0 0" />
+                <feComponentTransfer>
+                  <feFuncA type="linear" slope="2" intercept="-1" />
+                </feComponentTransfer>
+                <feComposite in2="SourceAlpha" operator="in" />
+              </filter>
+            </defs>
+          </svg>
           <div className="work-logo-grid">
             {workBrands.map(brand => (
               <div
-                className={`work-logo work-logo-${brand.surface}`}
+                className={`work-logo${brand.knockout ? " work-logo-knockout" : ""}`}
                 key={brand.name}
               >
-                <Image
-                  src={brand.image}
-                  alt={brand.alt}
-                  width={brand.width}
-                  height={brand.height}
-                  sizes="(max-width: 760px) 40vw, 18vw"
-                />
+                <div
+                  className="work-logo-art"
+                  style={{ "--logo-scale": brand.scale } as CSSProperties}
+                >
+                  <Image
+                    src={brand.image}
+                    alt={brand.alt}
+                    width={brand.width}
+                    height={brand.height}
+                    sizes="(max-width: 760px) 40vw, 16vw"
+                  />
+                </div>
               </div>
             ))}
           </div>

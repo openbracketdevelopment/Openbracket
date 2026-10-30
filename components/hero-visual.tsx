@@ -10,6 +10,7 @@ import {
   useResumableTyping,
   useTexasClock,
 } from "./crt/use-monitor"
+import { useCrtAudio } from "./crt/use-audio"
 import PowerControl from "./crt/power-control"
 import { powerAnnouncement, powerBusy } from "../lib/crt-power"
 
@@ -32,10 +33,13 @@ export default function HeroVisual() {
   const canType = running && !paused && !staticTerminal && power.phase === "ON"
   const { typing, freeze, reset } = useResumableTyping(canType)
   const clock = useTexasClock()
+  const [shutdownClock, setShutdownClock] = useState<typeof clock>(null)
+  const audio = useCrtAudio(typing, canType)
   function activateMonitor() {
-    if (powerBusy(power.phase)) return
+    if (powerBusy(power.phase) || !activate()) return
+    if (power.phase === "ON") setShutdownClock(clock)
     freeze()
-    activate()
+    audio.controller.current?.power(power.phase === "OFF")
   }
   useEffect(() => {
     const element = host.current
@@ -104,7 +108,7 @@ export default function HeroVisual() {
           text={text}
           blink={blink}
           power={power}
-          clock={clock}
+          clock={power.phase === "POWERING_OFF" ? shutdownClock : clock}
           reduced={reduced}
         />
         {graphics && (
@@ -131,28 +135,65 @@ export default function HeroVisual() {
       </p>
       <div className="art-controls">
         <span className="mono">OLD-SCHOOL CHARM. NEW POSSIBILITIES.</span>
-        <button
-          onClick={() => {
-            if (staticTerminal) {
-              setMotionOverride(true)
-              reset()
-              setPaused(false)
-            } else setPaused(!paused)
-          }}
-          aria-pressed={paused}
-          aria-label={
-            staticTerminal
-              ? "Play terminal animation (reduced motion is enabled)"
-              : undefined
-          }
-        >
-          {staticTerminal
-            ? "Play terminal ▷"
-            : paused
-              ? "Resume terminal ▷"
-              : "Pause terminal Ⅱ"}
-        </button>
+        <div className="terminal-controls">
+          <button
+            onClick={() => {
+              if (staticTerminal) {
+                setMotionOverride(true)
+                reset()
+                setPaused(false)
+              } else setPaused(!paused)
+            }}
+            aria-pressed={paused}
+            aria-label={
+              staticTerminal
+                ? "Play terminal animation (reduced motion is enabled)"
+                : undefined
+            }
+          >
+            {staticTerminal
+              ? "Play terminal ▷"
+              : paused
+                ? "Resume terminal ▷"
+                : "Pause terminal Ⅱ"}
+          </button>
+          <button
+            className="sound-toggle"
+            onClick={() => void audio.toggle()}
+            aria-pressed={audio.enabled}
+            aria-label={audio.enabled ? "Mute sound" : "Enable sound"}
+            title={
+              !audio.enabled
+                ? "Sound is requested. Activate to allow playback in this browser."
+                : undefined
+            }
+          >
+            <svg
+              viewBox="0 0 20 20"
+              width="14"
+              height="14"
+              aria-hidden="true"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <path d="M3 7h3l4-4v14l-4-4H3z" />
+              {audio.enabled ? (
+                <path d="M13 6q5 4 0 8M15 3q8 7 0 14" />
+              ) : (
+                <path d="m13 7 5 6m0-6-5 6" />
+              )}
+            </svg>
+            Sound {audio.enabled ? "off" : "on"}
+          </button>
+        </div>
       </div>
+      {audio.unavailable && (
+        <span className="sr-only" role="status">
+          Sound could not start. Try enabling sound again in a supported
+          browser.
+        </span>
+      )}
     </div>
   )
 }

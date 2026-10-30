@@ -49,7 +49,7 @@ export default function MonitorScene(props: MonitorSceneProps) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.0
     renderer.shadowMap.enabled = true
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    renderer.shadowMap.type = THREE.PCFShadowMap
     renderer.shadowMap.autoUpdate = false
     renderer.shadowMap.needsUpdate = true
     element.appendChild(renderer.domElement)
@@ -338,7 +338,8 @@ export default function MonitorScene(props: MonitorSceneProps) {
       context.fillText("[ OB ]", 888, 663)
     }
     function paintScreen(requestFrame = true) {
-      drawContent()
+      // Hold the last actual screen pixels (including the cursor) throughout collapse.
+      if (current.power.phase !== "POWERING_OFF") drawContent()
       const effect = screenEffect(
         current.power.phase,
         performance.now() - current.power.startedAt,

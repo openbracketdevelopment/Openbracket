@@ -882,7 +882,7 @@ dialog button {
   .form-content {
     padding: 24px;
   }
-  .hero-foot span:nth-child(2) {
+  .hero-foot > span:nth-child(2) {
     display: none;
   }
   .bracket-poster > span {
@@ -1111,7 +1111,7 @@ dialog button {
   .header-inner {
     gap: 10px;
   }
-  .hero-foot span:last-child {
+  .hero-foot > span:last-child {
     display: none;
   }
 }
@@ -1144,13 +1144,13 @@ dialog button {
   padding: 10px 0;
 }
 
-.site-footer .brand-horizontal {
-  width: 260px;
+.site-footer .brand-stacked {
+  width: 220px;
   max-width: 100%;
   height: auto;
-  aspect-ratio: 700/150;
+  aspect-ratio: 460 / 330;
 }
-.site-footer .brand-horizontal .brand-logo {
+.site-footer .brand-stacked img {
   width: 100%;
   height: auto;
 }
@@ -1556,20 +1556,12 @@ dialog button {
 }
 .work-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 85px 45px;
 }
 .work-project {
   min-width: 0;
   scroll-margin-top: 115px;
-}
-.work-featured {
-  grid-column: 1/-1;
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 45px;
-  align-items: center;
-  padding-bottom: 15px;
 }
 .project-window {
   border: 1px solid var(--field-border);
@@ -1598,10 +1590,17 @@ dialog button {
 }
 .project-image-link img {
   display: block;
-  object-fit: contain;
+  object-fit: cover;
   width: 100%;
   height: 100%;
   transition: transform 0.35s ease;
+}
+/* Keep the full ESPS montage and extend its black canvas to the frame edges. */
+#esps-parts .project-image-link {
+  background: #000;
+}
+#esps-parts .project-image-link img {
+  object-fit: contain;
 }
 .project-image-link:hover img {
   transform: scale(1.025);
@@ -1609,14 +1608,8 @@ dialog button {
 .project-image-link:focus-visible {
   outline-offset: -4px;
 }
-.work-featured .project-image-link {
-  aspect-ratio: 1440/1000;
-}
 .project-copy {
   padding-top: 27px;
-}
-.work-featured .project-copy {
-  padding-top: 0;
 }
 .project-copy > .eyebrow {
   font-size: 9px;
@@ -1691,7 +1684,7 @@ dialog button {
 }
 .work-logo-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 16px;
   margin-top: 40px;
 }
@@ -1704,30 +1697,44 @@ dialog button {
   padding: 26px;
   border: 1px solid #55594f33;
 }
-.work-logo-dark {
+.work-logo {
   background: #252823;
+  overflow: hidden;
 }
-.work-logo-light {
-  background: #fff;
+.work-logo-art {
+  width: 100%;
+  max-width: 150px;
+  height: 88px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .work-logo img {
   display: block;
-  max-width: 100%;
-  width: 145px;
-  max-height: 85px;
+  width: calc(100% * var(--logo-scale, 1));
+  max-width: none;
   height: auto;
+  flex-shrink: 0;
   object-fit: contain;
 }
+.work-logo-knockout img {
+  filter: url(#brand-white-knockout);
+}
+.brand-color-filters {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
 @media (max-width: 1100px) {
-  .work-featured {
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
-  }
   .work-intro-bottom {
     gap: 40px;
   }
   .work-grid {
     gap: 65px 30px;
+  }
+  .work-logo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .work-logo {
     padding: 18px;
@@ -1736,14 +1743,9 @@ dialog button {
 }
 @media (max-width: 760px) {
   .work-intro-bottom,
-  .work-featured,
   .work-grid {
     grid-template-columns: 1fr;
     gap: 35px;
-  }
-  .work-featured {
-    gap: 0;
-    padding-bottom: 0;
   }
   .work-intro-bottom {
     gap: 10px;
@@ -1753,9 +1755,6 @@ dialog button {
   }
   .work-grid {
     gap: 55px;
-  }
-  .work-featured .project-copy {
-    padding-top: 27px;
   }
   .project-copy h2 {
     font-size: 32px;
@@ -2082,21 +2081,25 @@ dialog button {
   transform-origin: 195px 132px;
 }
 .fallback-powered-content[data-phase="POWERING_OFF"] {
-  animation: fallback-off 0.72s ease-in forwards;
+  animation: fallback-off 0.54s ease-in forwards;
 }
 .fallback-powered-content[data-phase="POWERING_ON"] {
   animation: fallback-on 0.85s ease-out both;
 }
 .fallback-shutdown-line[data-phase="POWERING_OFF"] {
-  animation: fallback-line 0.72s ease-in forwards;
+  animation: fallback-line 0.54s ease-in forwards;
 }
 .fallback-shutdown-point[data-phase="POWERING_OFF"] {
-  animation: fallback-point 0.72s ease-in forwards;
+  animation: fallback-point 0.54s ease-in forwards;
 }
 @keyframes fallback-off {
   0% {
     transform: scaleY(1);
     opacity: 1;
+  }
+  12% {
+    transform: scaleY(0.22);
+    opacity: 0.9;
   }
   33% {
     transform: scaleY(0.004);
@@ -2115,15 +2118,15 @@ dialog button {
     transform: scaleX(1);
   }
   33%,
-  53% {
+  43% {
     opacity: 1;
     transform: scaleX(1);
   }
-  80% {
+  72% {
     opacity: 1;
     transform: scaleX(0.006);
   }
-  81%,
+  73%,
   100% {
     opacity: 0;
     transform: scaleX(0.01);
@@ -2131,10 +2134,10 @@ dialog button {
 }
 @keyframes fallback-point {
   0%,
-  80% {
+  72% {
     opacity: 0;
   }
-  81% {
+  73% {
     opacity: 1;
   }
   100% {
@@ -2207,4 +2210,81 @@ dialog button {
 .monitor-assembly:has(.crt-webgl[data-ready="true"]) .monitor-power-control {
   left: var(--power-x, 60.6%);
   top: var(--power-y, 74.5%);
+}
+
+.terminal-controls {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.art-controls .sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.hero-location {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7ch;
+  flex-wrap: wrap;
+}
+.hero-location .hero-local-time {
+  display: inline-block;
+  min-width: 12ch;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 515px) {
+  .art-controls {
+    flex-wrap: wrap;
+  }
+  .art-controls > .mono {
+    max-width: none;
+    flex-basis: 100%;
+  }
+  .terminal-controls {
+    margin-left: auto;
+  }
+}
+
+.brand-stacked .footer-logo-light {
+  display: none;
+}
+[data-theme="light"] .brand-stacked .footer-logo-dark {
+  display: none;
+}
+[data-theme="light"] .brand-stacked .footer-logo-light {
+  display: block;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .brand-stacked .footer-logo-dark {
+    display: none;
+  }
+  :root:not([data-theme]) .brand-stacked .footer-logo-light {
+    display: block;
+  }
+}
+@media (max-width: 760px) {
+  .site-footer .brand-stacked {
+    width: 180px;
+  }
+}
+
+.project-gallery {
+  margin: 24px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 14px 0;
+}
+.project-gallery summary {
+  cursor: pointer;
+  font: 12px var(--mono);
+  padding: 6px 0;
+}
+.project-gallery img {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 16px;
 }
