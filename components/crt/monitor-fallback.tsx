@@ -7,10 +7,15 @@ export default function MonitorFallback({
   text: string
   blink: boolean
 }) {
+  const split = text.lastIndexOf(" ", 27)
+  const lines =
+    text.length > 27 && split > 0
+      ? [text.slice(0, split + 1), text.slice(split + 1)]
+      : [text]
   return (
     <svg
       className="crt-fallback"
-      viewBox="0 0 900 760"
+      viewBox="0 0 900 820"
       role="presentation"
       aria-hidden="true"
     >
@@ -28,13 +33,13 @@ export default function MonitorFallback({
           <stop offset="1" stopColor="#5a4c44" />
         </linearGradient>
         <radialGradient id="crt-glass">
-          <stop stopColor="#111a17" />
+          <stop stopColor="#060a0b" />
           <stop offset="1" stopColor="#060a0b" />
         </radialGradient>
-        <linearGradient id="crt-reflection">
+        <radialGradient id="crt-reflection">
           <stop stopColor="#d5deee" stopOpacity=".12" />
           <stop offset="1" stopColor="#d5deee" stopOpacity="0" />
-        </linearGradient>
+        </radialGradient>
         <radialGradient id="crt-contact">
           <stop stopOpacity=".24" />
           <stop offset="1" stopOpacity="0" />
@@ -43,7 +48,18 @@ export default function MonitorFallback({
           <path d="M205 175Q380 137 580 164L578 511Q390 540 205 500Q183 335 205 175Z" />
         </clipPath>
       </defs>
-      <ellipse cx="466" cy="666" rx="335" ry="40" fill="url(#crt-contact)" />
+      <ellipse cx="426" cy="756" rx="198" ry="30" fill="url(#crt-contact)" />
+      <path
+        d="M270 738C270 704 578 699 584 734L582 753C567 779 286 783 269 755Z"
+        fill="url(#crt-shell)"
+        stroke="var(--monitor-seam)"
+      />
+      <ellipse cx="426" cy="735" rx="158" ry="30" fill="url(#crt-shell)" />
+      <path
+        d="M389 735Q364 724 383 707L395 641L447 645L465 704Q485 726 460 736Z"
+        fill="url(#crt-side)"
+      />
+      <ellipse cx="423" cy="645" rx="53" ry="17" fill="var(--monitor-front)" />
       <path
         d="M596 99L667 116L668 184L788 240L784 556L665 638L595 658Z"
         fill="url(#crt-side)"
@@ -65,10 +81,7 @@ export default function MonitorFallback({
           <path key={i} d={`M718 ${375 + i * 7}L782 ${360 + i * 7}`} />
         ))}
       </g>
-      <path
-        d="M159 611L611 643L664 622L627 677L188 645Z"
-        fill="var(--monitor-front)"
-      />
+
       <path
         d="M142 123L596 99L595 658L150 614Z"
         fill="url(#crt-shell)"
@@ -85,7 +98,7 @@ export default function MonitorFallback({
       />
       <g clipPath="url(#crt-glass-clip)">
         <path
-          d="M215 183L401 164Q371 208 380 348L207 341Z"
+          d="M205 175Q380 137 580 164L578 511Q390 540 205 500Q183 335 205 175Z"
           fill="url(#crt-reflection)"
         />
         <g
@@ -104,13 +117,17 @@ export default function MonitorFallback({
           <text y="101" fontSize="12">
             &gt; run good-things.exe
           </text>
-          <text className="terminal-typed" y="158" fontSize="12">
-            {text}
+          <text className="terminal-typed" y="145" fontSize="24">
+            {lines.map((line, index) => (
+              <tspan key={index} x="0" dy={index ? 32 : 0}>
+                {line}
+              </tspan>
+            ))}
             <tspan className="terminal-caret" data-blink={blink}>
               ▋
             </tspan>
           </text>
-          <text className="terminal-static" y="158" fontSize="12">
+          <text className="terminal-static" y="145" fontSize="24">
             {terminalPhrases[0]}
             <tspan>▋</tspan>
           </text>

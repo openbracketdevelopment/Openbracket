@@ -1940,3 +1940,15 @@ dialog button {
     transition: none;
   }
 }
+
+/* Reduced motion stays static by default; terminal playback can be explicitly requested. */
+.crt-composition[data-motion-override="true"] .terminal-typed {
+  display: block;
+}
+.crt-composition[data-motion-override="true"] .terminal-static {
+  display: none;
+}
+.crt-composition[data-motion-override="true"][data-running="true"]
+  .terminal-caret[data-blink="true"] {
+  animation: terminal-caret 1.2s step-end infinite !important;
+}

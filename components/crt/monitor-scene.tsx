@@ -51,11 +51,13 @@ export default function MonitorScene({
     renderer.toneMappingExposure = 1.0
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    renderer.shadowMap.autoUpdate = false
+    renderer.shadowMap.needsUpdate = true
     element.appendChild(renderer.domElement)
     const scene = new THREE.Scene()
     const camera = new THREE.PerspectiveCamera(16, 1, 0.1, 80)
-    const target = new THREE.Vector3(0, 2.18, 0.0)
-    camera.position.set(10.5, 4.03, 18.2)
+    const target = new THREE.Vector3(0, 2.5, 0.0)
+    camera.position.set(10.5, 4.35, 18.2)
     camera.lookAt(target)
     const environment = new RoomEnvironment()
     const pmrem = new THREE.PMREMGenerator(renderer)
@@ -70,6 +72,7 @@ export default function MonitorScene({
     const context = screenCanvas.getContext("2d")!
     const screenTexture = new THREE.CanvasTexture(screenCanvas)
     screenTexture.colorSpace = THREE.SRGBColorSpace
+    screenTexture.wrapS = screenTexture.wrapT = THREE.ClampToEdgeWrapping
     screenTexture.anisotropy = Math.min(
       4,
       renderer.capabilities.getMaxAnisotropy(),
@@ -78,7 +81,7 @@ export default function MonitorScene({
     let seed = 37
     for (let i = 0; i < noise.length; i += 4) {
       seed = (seed * 16807) % 2147483647
-      noise[i] = noise[i + 1] = noise[i + 2] = 120 + (seed % 16)
+      noise[i] = noise[i + 1] = noise[i + 2] = 236 + (seed % 16)
       noise[i + 3] = 255
     }
     const grain = new THREE.DataTexture(noise, 64, 64)
@@ -95,7 +98,7 @@ export default function MonitorScene({
     scene.add(model.group)
     scene.add(new THREE.HemisphereLight("#e9efff", "#7a7060", 1.1))
     const key = new THREE.DirectionalLight("#fff6e8", 2.0)
-    key.position.set(-3.5, 7.5, 7)
+    key.position.set(-3.5, 9, 5)
     key.castShadow = true
     key.shadow.mapSize.set(1024, 1024)
     key.shadow.camera.left = -6
@@ -112,26 +115,18 @@ export default function MonitorScene({
     const frontFill = new THREE.DirectionalLight("#d8e1ed", 0.45)
     frontFill.position.set(2, 2, 8)
     scene.add(frontFill)
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(30, 30),
-      new THREE.ShadowMaterial({ opacity: 0.22 }),
-    )
-    ground.rotation.x = -Math.PI / 2
-    ground.position.y = 0.075
-    ground.receiveShadow = true
-    scene.add(ground)
-    // A broad feathered contact patch keeps the wedge grounded at small render sizes.
+    // A fully feathered contact patch grounds the base without a cropped cast-shadow plane.
     const contactCanvas = document.createElement("canvas")
     contactCanvas.width = contactCanvas.height = 128
     const contactContext = contactCanvas.getContext("2d")!
     const radial = contactContext.createRadialGradient(64, 64, 5, 64, 64, 64)
-    radial.addColorStop(0, "rgba(0,0,0,.33)")
+    radial.addColorStop(0, "rgba(0,0,0,.22)")
     radial.addColorStop(1, "rgba(0,0,0,0)")
     contactContext.fillStyle = radial
     contactContext.fillRect(0, 0, 128, 128)
     const contactTexture = new THREE.CanvasTexture(contactCanvas)
     const contact = new THREE.Mesh(
-      new THREE.PlaneGeometry(6.3, 4.1),
+      new THREE.PlaneGeometry(3.3, 2.7),
       new THREE.MeshBasicMaterial({
         map: contactTexture,
         transparent: true,
@@ -139,7 +134,7 @@ export default function MonitorScene({
       }),
     )
     contact.rotation.x = -Math.PI / 2
-    contact.position.set(0.1, 0.08, 0)
+    contact.position.set(0, 0.075, -0.2)
     scene.add(contact)
     let visible = true,
       usable = true,
@@ -188,7 +183,7 @@ export default function MonitorScene({
       context.fillStyle = "#a7d6a5"
       context.font = '26px "Courier New", monospace'
       context.fillText("> run good-things.exe", 72, 255)
-      context.font = '39px "Courier New", monospace'
+      context.font = '52px "Courier New", monospace'
       context.fillStyle = "#b2edaa"
       context.shadowColor = "#8bec9160"
       context.shadowBlur = 3
@@ -202,13 +197,13 @@ export default function MonitorScene({
         } else line = next
       }
       lines.push(line)
-      lines.forEach((value, i) => context.fillText(value, 90, 356 + i * 54))
+      lines.forEach((value, i) => context.fillText(value, 90, 346 + i * 70))
       if (!current.blink || cursorVisible)
         context.fillRect(
           91 + context.measureText(lines[lines.length - 1]).width,
-          355 + (lines.length - 1) * 54,
-          17,
-          39,
+          345 + (lines.length - 1) * 70,
+          22,
+          52,
         )
       context.shadowBlur = 0
       context.font = '17px "Courier New", monospace'
@@ -223,20 +218,18 @@ export default function MonitorScene({
       context.fillStyle = "#86ad8a"
       context.fillText("OPEN TO POSSIBILITIES", 72, 658)
       context.fillText("[ OB ]", 888, 658)
-      // The soft upper-left reflection is painted into the curved glass UVs, not an HTML overlay.
-      const reflection = context.createLinearGradient(100, 90, 540, 470)
-      reflection.addColorStop(0, "rgba(185,196,214,.11)")
-      reflection.addColorStop(0.7, "rgba(185,196,214,.035)")
+      // A feathered area-light reflection follows the glass UVs without a rectangular edge.
+      context.save()
+      context.translate(320, 180)
+      context.rotate(-0.16)
+      context.scale(1, 0.64)
+      const reflection = context.createRadialGradient(0, 0, 25, 0, 0, 330)
+      reflection.addColorStop(0, "rgba(185,196,214,.10)")
+      reflection.addColorStop(0.5, "rgba(185,196,214,.045)")
       reflection.addColorStop(1, "rgba(185,196,214,0)")
       context.fillStyle = reflection
-      context.beginPath()
-      context.moveTo(96, 35)
-      context.lineTo(560, 30)
-      context.quadraticCurveTo(475, 90, 480, 160)
-      context.lineTo(485, 436)
-      context.lineTo(78, 419)
-      context.closePath()
-      context.fill()
+      context.fillRect(-350, -350, 700, 700)
+      context.restore()
       context.fillStyle = "rgba(0,0,0,.10)"
       for (let y = 0; y < 768; y += 4) context.fillRect(0, y, 1024, 1)
       const vignette = context.createRadialGradient(
@@ -248,7 +241,7 @@ export default function MonitorScene({
         650,
       )
       vignette.addColorStop(0, "rgba(0,0,0,0)")
-      vignette.addColorStop(1, "rgba(0,0,0,.43)")
+      vignette.addColorStop(1, "rgba(0,0,0,.24)")
       context.fillStyle = vignette
       context.fillRect(0, 0, 1024, 768)
       screenTexture.needsUpdate = true
@@ -285,7 +278,6 @@ export default function MonitorScene({
       if (
         current.blink &&
         current.active &&
-        !current.reduced &&
         visible &&
         !document.hidden &&
         usable
@@ -297,6 +289,10 @@ export default function MonitorScene({
     }
     update.current = (text, blink, active, reduced) => {
       current = { text, blink, active, reduced }
+      if (reduced && model.group.rotation.y !== 0) {
+        model.group.rotation.y = 0
+        renderer.shadowMap.needsUpdate = true
+      }
       syncBlink()
       paintScreen()
     }
@@ -337,10 +333,12 @@ export default function MonitorScene({
       const bounds = element!.getBoundingClientRect()
       model.group.rotation.y =
         ((event.clientX - bounds.left) / bounds.width - 0.5) * 0.025
+      renderer.shadowMap.needsUpdate = true
       invalidate()
     }
     function pointerLeave() {
       model.group.rotation.y = 0
+      renderer.shadowMap.needsUpdate = true
       invalidate()
     }
     element.addEventListener("pointermove", pointerMove)

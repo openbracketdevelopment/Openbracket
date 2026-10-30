@@ -19,6 +19,8 @@ export default function HeroVisual() {
   const [running, setRunning] = useState(false)
   const [paused, setPaused] = useState(false)
   const [reduced, setReduced] = useState(false)
+  const [motionOverride, setMotionOverride] = useState(false)
+  const staticTerminal = reduced && !motionOverride
   const [graphics, setGraphics] = useState(false)
   const [visible, setVisible] = useState(false)
   const [typing, setTyping] = useState(initialTypingState)
@@ -29,7 +31,7 @@ export default function HeroVisual() {
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)")
     const sync = () => {
       setReduced(preference.matches)
-      setRunning(visible && !document.hidden && !preference.matches)
+      setRunning(visible && !document.hidden)
     }
     const observer = new IntersectionObserver(
       entries => {
@@ -56,18 +58,18 @@ export default function HeroVisual() {
     }
   }, [])
   useEffect(() => {
-    if (!running || paused) return
+    if (!running || paused || staticTerminal) return
     const timer = window.setTimeout(
       () => setTyping(advanceTyping),
       typingDelay(typing),
     )
     return () => window.clearTimeout(timer)
-  }, [running, paused, typing])
-  const text = reduced
+  }, [running, paused, typing, staticTerminal])
+  const text = staticTerminal
     ? terminalPhrases[0]
     : terminalPhrases[typing.phrase].slice(0, typing.length)
   const blink =
-    !reduced &&
+    !staticTerminal &&
     running &&
     !paused &&
     (typing.phase === "holding" || typing.phase === "waiting")
@@ -75,7 +77,8 @@ export default function HeroVisual() {
     <div
       className="crt-composition"
       ref={host}
-      data-running={running && !paused}
+      data-running={running && !paused && !staticTerminal}
+      data-motion-override={motionOverride}
     >
       <span className="sr-only">
         OpenBracket: Have a project in mind? We build thoughtful websites and
@@ -92,9 +95,9 @@ export default function HeroVisual() {
         <MonitorFallback text={text} blink={blink} />
         {graphics && (
           <MonitorScene
-            text={reduced ? terminalPhrases[0] : text}
+            text={text}
             blink={blink}
-            active={visible && running && !paused}
+            active={visible && running && !paused && !staticTerminal}
             reduced={reduced}
           />
         )}
@@ -102,12 +105,22 @@ export default function HeroVisual() {
       <div className="art-controls">
         <span className="mono">OLD-SCHOOL CHARM. NEW POSSIBILITIES.</span>
         <button
-          onClick={() => setPaused(!paused)}
+          onClick={() => {
+            if (staticTerminal) {
+              setMotionOverride(true)
+              setTyping(initialTypingState)
+              setPaused(false)
+            } else setPaused(!paused)
+          }}
           aria-pressed={paused}
-          disabled={reduced}
+          aria-label={
+            staticTerminal
+              ? "Play terminal animation (reduced motion is enabled)"
+              : undefined
+          }
         >
-          {reduced
-            ? "Motion reduced"
+          {staticTerminal
+            ? "Play terminal ▷"
             : paused
               ? "Resume terminal ▷"
               : "Pause terminal Ⅱ"}

@@ -265,6 +265,23 @@ test("terminal uses one timer, solid editing cursor, blinking hold, survives the
     assert.equal(timers.size, 0)
     assert.equal(text(), terminalPhrases[0] + "▋")
     assert.equal(cursor().getAttribute("data-blink"), "false")
+    const play = env.window.document.querySelector<HTMLButtonElement>(
+      ".art-controls button",
+    )!
+    assert.equal(play.disabled, false)
+    assert.match(play.textContent!, /Play terminal/)
+    act(() => play.click())
+    assert.equal(tick(), 550)
+    assert.equal(text(), "h▋")
+    for (let i = 1; i < terminalPhrases[0].length; i++) tick()
+    tick()
+    assert.equal(tick(), 3000)
+    for (let i = terminalPhrases[0].length; i >= 0; i--)
+      assert.equal(tick(), 40)
+    assert.equal(tick(), 550)
+    assert.equal(text(), "h▋")
+    assert.equal(tick(), 85)
+    assert.equal(text(), "ho▋")
     assert.ok(
       env.window.document
         .querySelector(".sr-only")!
