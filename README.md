@@ -20,8 +20,11 @@ Open [localhost:3000](http://localhost:3000).
 
 To enable the contact form, create a local environment file:
 
-```sh
-cp .env.example .env.local
+```dotenv
+RESEND_API_KEY=
+CONTACT_FROM=OpenBracket <hello@openbracket.io>
+CONTACT_TO=tam@openbracket.io
+SITE_URL=http://localhost:3000
 ```
 
 Set the Resend API key, verified sender, recipient, and `SITE_URL=http://localhost:3000`. Local development uses an in-memory rate limiter when Upstash Redis is not configured. Keep credentials server-side. The site runs without email credentials, but contact form delivery requires them.
