@@ -1,3 +1,4 @@
+import Icon from "../../components/icon"
 import type { Metadata } from "next"
 import ClosingCta from "../../components/closing-cta"
 export const metadata: Metadata = {
@@ -30,20 +31,24 @@ const principles = [
   [
     "Direct communication",
     "Talk through the decisions with the people doing the work. Ask questions, share feedback, and stay part of the process.",
+    "conversation",
   ],
   [
     "Practical problem-solving",
     "Start with what your business needs. Choose a sensible approach that fits the problem and can grow with you.",
+    "puzzle",
   ],
   [
     "Design and development, together",
     "Think about how it looks and how it works at the same time. The details are better when both sides inform each other.",
+    "layers",
   ],
   [
     "Care beyond the surface",
     "Accessibility, performance, and maintainability belong in the conversation from the beginning, alongside the visual design.",
+    "shield",
   ],
-]
+] as const
 export default function About() {
   return (
     <main id="main">
@@ -101,9 +106,12 @@ export default function About() {
       <section className="section wrap">
         <p className="eyebrow">WHAT GUIDES THE WORK</p>
         <div className="principles">
-          {principles.map(([title, text], i) => (
+          {principles.map(([title, text, icon], i) => (
             <article key={title}>
-              <span className="mono">0{i + 1} /</span>
+              <div className="principle-heading">
+                <Icon name={icon} className="feature-icon" />
+                <span className="mono">0{i + 1} /</span>
+              </div>
               <h2>{title}</h2>
               <p>{text}</p>
             </article>
