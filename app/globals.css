@@ -2337,3 +2337,108 @@ button:hover > .ob-icon {
 .monitor-assembly:has(.display-loader) .monitor-power-control {
   visibility: hidden;
 }
+
+/* Clearer editorial labels and a consistent, rounded line-icon family. */
+.mono,
+.eyebrow {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+}
+.hero-foot {
+  font-size: 12px;
+  gap: 24px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.work-attribution > .mono,
+.work-section-label .eyebrow,
+.work-section-label > .mono,
+.project-copy > .eyebrow,
+.project-contribution h3,
+.project-contribution .project-role {
+  font-size: 12px;
+  font-weight: 600;
+}
+.window-bar,
+.project-window .window-bar {
+  font-size: 11px;
+  font-weight: 600;
+}
+.project-technologies li {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: 7px 10px;
+  color: var(--text);
+}
+.window-dots {
+  font-size: 16px;
+}
+.step-heading,
+.principle-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.feature-icon {
+  width: 64px;
+  height: 64px;
+  color: var(--accent);
+  stroke-width: 1;
+}
+.step-heading .step-number {
+  margin: 0;
+  color: var(--muted);
+}
+.process h3 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.6px;
+  margin: 0 0 16px;
+}
+.process p,
+.principles p {
+  font-size: 16px;
+  line-height: 1.75;
+  margin: 0;
+}
+.principles h2 {
+  font-size: clamp(26px, 2.5vw, 32px);
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 20px;
+}
+.project-contribution p {
+  font-size: 15px;
+  line-height: 1.75;
+}
+.art-coordinate {
+  font-size: 10px;
+  font-weight: 600;
+}
+.art-controls .mono {
+  font-size: 9px;
+  font-weight: 600;
+}
+.art-controls button {
+  font-size: 11px;
+  font-weight: 600;
+}
+@media (max-width: 760px) {
+  .feature-icon {
+    width: 52px;
+    height: 52px;
+  }
+  .process h3 {
+    font-size: 22px;
+  }
+  .hero-foot {
+    font-size: 11px;
+  }
+  .project-window .window-bar {
+    font-size: 10px;
+  }
+}

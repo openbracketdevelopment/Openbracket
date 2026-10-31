@@ -193,22 +193,7 @@ export default function HeroVisual() {
                 : undefined
             }
           >
-            <svg
-              viewBox="0 0 20 20"
-              width="14"
-              height="14"
-              aria-hidden="true"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-            >
-              <path d="M3 7h3l4-4v14l-4-4H3z" />
-              {audio.enabled ? (
-                <path d="M13 6q5 4 0 8M15 3q8 7 0 14" />
-              ) : (
-                <path d="m13 7 5 6m0-6-5 6" />
-              )}
-            </svg>
+            <Icon name={audio.enabled ? "sound" : "mute"} />
             {audio.enabled ? "Sound off" : "Enable sound"}
           </button>
         </div>

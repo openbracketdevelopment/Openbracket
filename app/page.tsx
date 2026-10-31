@@ -9,6 +9,8 @@ export const metadata: Metadata = {
   title: { absolute: "OpenBracket — Web development in Dallas–Fort Worth" },
   alternates: { canonical: "/" },
 }
+const processIcons = ["compass", "pen", "code", "rocket"] as const
+
 export default function Home() {
   return (
     <main id="main">
@@ -134,12 +136,10 @@ export default function Home() {
         <ol className="process">
           {process.map((step, i) => (
             <li key={step.title}>
-              <span className="step-number mono">
-                0{i + 1}{" "}
-                <span>
-                  <Icon name="arrow" />
-                </span>
-              </span>
+              <div className="step-heading">
+                <Icon name={processIcons[i]} className="feature-icon" />
+                <span className="step-number mono">0{i + 1}</span>
+              </div>
               <h3>{step.title}</h3>
               <p>{step.text}</p>
             </li>
