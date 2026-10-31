@@ -1,3 +1,4 @@
+import Icon from "./icon"
 export default function ClosingCta() {
   return (
     <section className="closing">
@@ -15,7 +16,10 @@ export default function ClosingCta() {
               even if you’re still figuring it out.
             </p>
             <a className="button light-button" href="/contact">
-              Tell us about your project <span>↗</span>
+              Tell us about your project{" "}
+              <span>
+                <Icon name="external" />
+              </span>
             </a>
           </div>
         </div>

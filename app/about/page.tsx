@@ -4,6 +4,26 @@ export const metadata: Metadata = {
   title: "About the studio",
   description:
     "Meet OpenBracket, a small Dallas–Fort Worth studio bringing design and development together.",
+  openGraph: {
+    description:
+      "Meet OpenBracket, a small Dallas–Fort Worth studio bringing design and development together.",
+    title: "An independent development studio | OpenBracket",
+    url: "/about",
+    images: [
+      {
+        url: "/about/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "OpenBracket — An independent development studio",
+      },
+    ],
+  },
+  twitter: {
+    description:
+      "Meet OpenBracket, a small Dallas–Fort Worth studio bringing design and development together.",
+    card: "summary_large_image",
+    images: ["/about/opengraph-image"],
+  },
   alternates: { canonical: "/about" },
 }
 const principles = [

@@ -1,5 +1,7 @@
 "use client"
+import Icon from "./icon"
 import dynamic from "next/dynamic"
+import SceneBoundary from "./crt/scene-boundary"
 import MonitorFallback from "./crt/monitor-fallback"
 import { useEffect, useRef, useState } from "react"
 
@@ -25,16 +27,24 @@ export default function HeroVisual() {
   const [reduced, setReduced] = useState(false)
   const [motionOverride, setMotionOverride] = useState(false)
   const staticTerminal = reduced && !motionOverride
+  const [sceneReady, setSceneReady] = useState(false)
+  const [sceneFailed, setSceneFailed] = useState(false)
   const [graphics, setGraphics] = useState(false)
   const [visible, setVisible] = useState(false)
   const [pressed, setPressed] = useState(false)
   const [highlighted, setHighlighted] = useState(false)
   const { power, activate } = useMonitorPower(reduced)
-  const canType = running && !paused && !staticTerminal && power.phase === "ON"
+  const displayReady = sceneReady || sceneFailed || (visible && !graphics)
+  const canType =
+    displayReady &&
+    running &&
+    !paused &&
+    !staticTerminal &&
+    power.phase === "ON"
   const { typing, freeze, reset } = useResumableTyping(canType)
   const clock = useTexasClock()
   const [shutdownClock, setShutdownClock] = useState<typeof clock>(null)
-  const audio = useCrtAudio(typing, canType)
+  const audio = useCrtAudio(typing, canType, displayReady)
   function activateMonitor() {
     if (powerBusy(power.phase) || !activate()) return
     if (power.phase === "ON") setShutdownClock(clock)
@@ -74,6 +84,11 @@ export default function HeroVisual() {
       preference.removeEventListener("change", sync)
     }
   }, [])
+  useEffect(() => {
+    if (!graphics || sceneReady || sceneFailed) return
+    const timeout = window.setTimeout(() => setSceneFailed(true), 15000)
+    return () => window.clearTimeout(timeout)
+  }, [graphics, sceneReady, sceneFailed])
   const text = staticTerminal
     ? terminalPhrases[0]
     : terminalPhrases[typing.phrase].slice(0, typing.length)
@@ -111,17 +126,26 @@ export default function HeroVisual() {
           clock={power.phase === "POWERING_OFF" ? shutdownClock : clock}
           reduced={reduced}
         />
-        {graphics && (
-          <MonitorScene
-            text={text}
-            blink={blink}
-            active={visible && canType}
-            reduced={reduced}
-            power={power}
-            clock={clock}
-            pressed={pressed}
-            highlighted={highlighted}
-          />
+        {graphics && !sceneReady && !sceneFailed && (
+          <div className="display-loader" role="status">
+            <span aria-hidden="true">[ ]</span>Initializing display…
+          </div>
+        )}
+        {graphics && !sceneFailed && (
+          <SceneBoundary onFailure={() => setSceneFailed(true)}>
+            <MonitorScene
+              onReady={() => setSceneReady(true)}
+              onFailure={() => setSceneFailed(true)}
+              text={text}
+              blink={blink}
+              active={visible && canType}
+              reduced={reduced}
+              power={power}
+              clock={clock}
+              pressed={pressed}
+              highlighted={highlighted}
+            />
+          </SceneBoundary>
         )}
         <PowerControl
           phase={power.phase}
@@ -152,10 +176,11 @@ export default function HeroVisual() {
             }
           >
             {staticTerminal
-              ? "Play terminal ▷"
+              ? "Play terminal"
               : paused
-                ? "Resume terminal ▷"
-                : "Pause terminal Ⅱ"}
+                ? "Resume terminal"
+                : "Pause terminal"}{" "}
+            <Icon name={staticTerminal || paused ? "play" : "pause"} />
           </button>
           <button
             className="sound-toggle"
@@ -184,7 +209,7 @@ export default function HeroVisual() {
                 <path d="m13 7 5 6m0-6-5 6" />
               )}
             </svg>
-            Sound {audio.enabled ? "off" : "on"}
+            {audio.enabled ? "Sound off" : "Enable sound"}
           </button>
         </div>
       </div>

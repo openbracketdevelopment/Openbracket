@@ -3,8 +3,7 @@
   publish = ".next"
 
 [build.environment]
-  # Keep aligned with .nvmrc and the GitHub Actions runtime.
-  NODE_VERSION = "26"
+  # Node is selected by .nvmrc (also used by CI).
   # Ignore the legacy Gatsby plugin if it is still enabled in Netlify.
   NETLIFY_SKIP_GATSBY_BUILD_PLUGIN = "true"
 

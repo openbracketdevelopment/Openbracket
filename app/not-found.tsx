@@ -1,3 +1,4 @@
+import Icon from "../components/icon"
 import Link from "next/link"
 export default function NotFound() {
   return (
@@ -14,10 +15,10 @@ export default function NotFound() {
       <p>This page may have moved, or the address may be incomplete.</p>
       <div className="hero-actions">
         <Link className="button" href="/">
-          Back to home ↗
+          Back to home <Icon name="external" />
         </Link>
         <a className="text-link" href="/sitemap">
-          Browse the sitemap ↗
+          Browse the sitemap <Icon name="external" />
         </a>
       </div>
     </main>

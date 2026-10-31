@@ -1,3 +1,4 @@
+import Icon from "../../components/icon"
 import type { Metadata } from "next"
 import { services } from "../../data/site"
 import ClosingCta from "../../components/closing-cta"
@@ -5,6 +6,26 @@ export const metadata: Metadata = {
   title: "Services",
   description:
     "Websites, custom applications, UI/UX, CMS integrations, mobile project discovery, and ongoing support.",
+  openGraph: {
+    description:
+      "Websites, custom applications, UI/UX, CMS integrations, mobile project discovery, and ongoing support.",
+    title: "Web development & digital services | OpenBracket",
+    url: "/services",
+    images: [
+      {
+        url: "/services/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "OpenBracket — Web development & digital services",
+      },
+    ],
+  },
+  twitter: {
+    description:
+      "Websites, custom applications, UI/UX, CMS integrations, mobile project discovery, and ongoing support.",
+    card: "summary_large_image",
+    images: ["/services/opengraph-image"],
+  },
   alternates: { canonical: "/services" },
 }
 const faqs = [
@@ -42,7 +63,7 @@ export default function Services() {
         <div className="anchor-links">
           {services.map(service => (
             <a key={service.id} href={`#${service.id}`}>
-              {service.title} ↓
+              {service.title} <Icon name="down" />
             </a>
           ))}
         </div>
@@ -66,7 +87,7 @@ export default function Services() {
                 <h3 className="eyebrow">WHAT IT CAN INCLUDE</h3>
                 <p>{service.includes}</p>
                 <a href="/contact" className="text-link">
-                  {service.next} ↗
+                  {service.next} <Icon name="external" />
                 </a>
               </div>
             </section>
@@ -87,7 +108,7 @@ export default function Services() {
             <details key={question}>
               <summary>
                 {question}
-                <span>＋</span>
+                <Icon name="plus" />
               </summary>
               <p>{answer}</p>
             </details>

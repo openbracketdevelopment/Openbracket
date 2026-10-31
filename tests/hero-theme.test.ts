@@ -629,7 +629,7 @@ test("sound defaults on when permitted, follows typing events, and cues accepted
     act(() => entry[1].callback())
   }
   try {
-    env.window.localStorage.setItem("openbracket-sound", "off")
+    env.window.localStorage.removeItem("openbracket-sound")
     await act(async () => root.render(createElement(HeroVisual)))
     const sound =
       env.window.document.querySelector<HTMLButtonElement>(".sound-toggle")!
@@ -643,7 +643,7 @@ test("sound defaults on when permitted, follows typing events, and cues accepted
     assert.equal(
       enable.mock.callCount(),
       1,
-      "fresh load ignores an old mute preference and attempts playback without a power cue",
+      "fresh load attempts playback without a power cue",
     )
     assert.equal(cues.length, 0, "initial load has no power cue")
     tick()
@@ -654,7 +654,7 @@ test("sound defaults on when permitted, follows typing events, and cues accepted
       sound.click()
     })
     assert.equal(sound.getAttribute("aria-pressed"), "false")
-    assert.match(sound.textContent!, /Sound on/)
+    assert.match(sound.textContent!, /Enable sound/)
     assert.equal(
       env.window.document.querySelector(".terminal-typed")!.textContent,
       text,
@@ -690,6 +690,91 @@ test("sound defaults on when permitted, follows typing events, and cues accepted
     click.mock.restore()
     powerCue.mock.restore()
     assert.equal(timers.size, 0)
+    env.cleanup()
+  }
+})
+
+test("saved mute survives reload and global interactions never override it", async () => {
+  const env = environment()
+  const root = createRoot(env.window.document.getElementById("test")!)
+  const enable = mock.method(CrtAudio.prototype, "enable", async () => true)
+  try {
+    env.window.localStorage.setItem("openbracket-sound", "off")
+    await act(async () => root.render(createElement(HeroVisual)))
+    const sound =
+      env.window.document.querySelector<HTMLButtonElement>(".sound-toggle")!
+    assert.equal(sound.getAttribute("aria-pressed"), "false")
+    assert.equal(enable.mock.callCount(), 0)
+    await act(async () =>
+      env.window.document.dispatchEvent(
+        new env.window.Event("pointerdown", { bubbles: true }),
+      ),
+    )
+    assert.equal(enable.mock.callCount(), 0)
+    await act(async () => sound.click())
+    assert.equal(sound.getAttribute("aria-pressed"), "true")
+    assert.equal(env.window.localStorage.getItem("openbracket-sound"), "on")
+    await act(async () => sound.click())
+    await act(async () =>
+      sound.dispatchEvent(
+        new env.window.KeyboardEvent("keydown", {
+          key: "Enter",
+          bubbles: true,
+        }),
+      ),
+    )
+    assert.equal(sound.getAttribute("aria-pressed"), "false")
+    assert.equal(enable.mock.callCount(), 1)
+    assert.equal(env.window.localStorage.getItem("openbracket-sound"), "off")
+  } finally {
+    act(() => root.unmount())
+    enable.mock.restore()
+    env.cleanup()
+  }
+})
+
+test("blocked autoplay leaves typing active and first interaction unlocks audio without replaying characters", async () => {
+  const env = environment()
+  const root = createRoot(env.window.document.getElementById("test")!)
+  let attempts = 0
+  const enable = mock.method(
+    CrtAudio.prototype,
+    "enable",
+    async () => ++attempts > 1,
+  )
+  const type = mock.method(CrtAudio.prototype, "type", () => {})
+  try {
+    await act(async () => root.render(createElement(HeroVisual)))
+    const sound =
+      env.window.document.querySelector<HTMLButtonElement>(".sound-toggle")!
+    assert.equal(sound.getAttribute("aria-pressed"), "false")
+    assert.equal(
+      env.window.document
+        .querySelector(".crt-composition")!
+        .getAttribute("data-running"),
+      "true",
+    )
+    await act(async () =>
+      env.window.document.dispatchEvent(
+        new env.window.Event("pointerdown", { bubbles: true }),
+      ),
+    )
+    assert.equal(sound.getAttribute("aria-pressed"), "true")
+    assert.equal(type.mock.callCount(), 0)
+    await act(async () =>
+      env.window.document.dispatchEvent(
+        new env.window.KeyboardEvent("keydown", { key: "Tab", bubbles: true }),
+      ),
+    )
+    assert.equal(
+      enable.mock.callCount(),
+      2,
+      "successful unlock is not repeated",
+    )
+  } finally {
+    act(() => root.unmount())
+    enable.mock.restore()
+    type.mock.restore()
     env.cleanup()
   }
 })

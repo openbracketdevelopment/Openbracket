@@ -1,3 +1,4 @@
+import Icon from "../../components/icon"
 import type { Metadata } from "next"
 import ContactForm from "../../components/contact-form"
 import { site } from "../../data/site"
@@ -5,6 +6,26 @@ export const metadata: Metadata = {
   title: "Contact",
   description:
     "Tell OpenBracket about your website or application project. Based in Dallas–Fort Worth.",
+  openGraph: {
+    description:
+      "Tell OpenBracket about your website or application project. Based in Dallas–Fort Worth.",
+    title: "Let’s build something useful | OpenBracket",
+    url: "/contact",
+    images: [
+      {
+        url: "/contact/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "OpenBracket — Let’s build something useful",
+      },
+    ],
+  },
+  twitter: {
+    description:
+      "Tell OpenBracket about your website or application project. Based in Dallas–Fort Worth.",
+    card: "summary_large_image",
+    images: ["/contact/opengraph-image"],
+  },
   alternates: { canonical: "/contact" },
 }
 export default function Contact() {
@@ -24,8 +45,12 @@ export default function Contact() {
           don’t need to have every detail figured out.
         </p>
         <div className="contact-links">
-          <a href={`mailto:${site.email}`}>{site.email} ↗</a>
-          <a href={`tel:${site.phone}`}>{site.phone} ↗</a>
+          <a href={`mailto:${site.email}`}>
+            {site.email} <Icon name="external" />
+          </a>
+          <a href={`tel:${site.phone}`}>
+            {site.phone} <Icon name="external" />
+          </a>
         </div>
         <p className="mono location">DALLAS–FORT WORTH, TEXAS</p>
         <div className="contact-note">

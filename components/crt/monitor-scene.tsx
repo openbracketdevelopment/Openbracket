@@ -20,9 +20,15 @@ export type MonitorSceneProps = {
   power: PowerState
   clock: TexasClock | null
   pressed: boolean
+  onReady?: () => void
+  onFailure?: () => void
   highlighted: boolean
 }
 export default function MonitorScene(props: MonitorSceneProps) {
+  const callbacks = useRef(props)
+  useEffect(() => {
+    callbacks.current = props
+  }, [props])
   const host = useRef<HTMLDivElement>(null)
   const update = useRef<((value: MonitorSceneProps) => void) | null>(null)
   useEffect(() => {
@@ -36,6 +42,7 @@ export default function MonitorScene(props: MonitorSceneProps) {
         powerPreference: "low-power",
       })
     } catch {
+      callbacks.current.onFailure?.()
       return
     }
     renderer.setPixelRatio(
@@ -156,6 +163,9 @@ export default function MonitorScene(props: MonitorSceneProps) {
     scene.add(contact)
     let visible = true,
       usable = true,
+      sized = false,
+      logoReady = false,
+      revealed = false,
       disposed = false,
       frame = 0,
       cursorVisible = true
@@ -193,7 +203,15 @@ export default function MonitorScene(props: MonitorSceneProps) {
     }
     function render() {
       frame = 0
-      if (!usable || disposed || !visible || document.hidden) return
+      if (
+        !usable ||
+        !sized ||
+        !logoReady ||
+        disposed ||
+        !visible ||
+        document.hidden
+      )
+        return
       const now = performance.now()
       const movingButton = positionButton(now)
       const transition =
@@ -214,6 +232,10 @@ export default function MonitorScene(props: MonitorSceneProps) {
         `${((1 - point.y) * height) / 2}px`,
       )
       element!.dataset.ready = "true"
+      if (!revealed) {
+        revealed = true
+        callbacks.current.onReady?.()
+      }
       const duration = current.reduced
         ? powerTiming.reducedFade
         : current.power.phase === "POWERING_OFF"
@@ -453,7 +475,14 @@ export default function MonitorScene(props: MonitorSceneProps) {
       logoTexture.needsUpdate = true
       invalidate()
     }
-    logoImage.onload = applyTheme
+    logoImage.onload = () => {
+      logoReady = true
+      applyTheme()
+    }
+    logoImage.onerror = () => {
+      logoReady = true
+      applyTheme()
+    }
     logoImage.src = "/brand/openbracket-icon.svg"
     const themeObserver = new MutationObserver(applyTheme)
     themeObserver.observe(document.documentElement, {
@@ -528,6 +557,7 @@ export default function MonitorScene(props: MonitorSceneProps) {
       if (!width || !height) return
       renderer.setSize(width, height)
       camera.aspect = width / height
+      sized = true
       // Pull back for narrow canvases rather than cropping or stretching the object.
       const scale = Math.max(1, 1.05 / camera.aspect)
       camera.position
@@ -560,6 +590,7 @@ export default function MonitorScene(props: MonitorSceneProps) {
       event.preventDefault()
       usable = false
       element.dataset.ready = "false"
+      callbacks.current.onFailure?.()
       clearInterval(blinkTimer)
       cancelAnimationFrame(frame)
       frame = 0
@@ -572,6 +603,7 @@ export default function MonitorScene(props: MonitorSceneProps) {
       clearInterval(blinkTimer)
       cancelAnimationFrame(frame)
       logoImage.onload = null
+      logoImage.onerror = null
       themeObserver.disconnect()
       visibilityObserver.disconnect()
       sizeObserver.disconnect()

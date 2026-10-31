@@ -1,4 +1,5 @@
 "use client"
+import Icon from "./icon"
 import Link from "next/link"
 import BrandLogo from "./brand-logo"
 import { useEffect, useRef, useState } from "react"
@@ -61,7 +62,10 @@ export default function Header() {
         <div className="header-actions">
           <ThemeToggle />
           <a className="button header-cta" href="/contact">
-            Let’s talk <span>↗</span>
+            Let’s talk{" "}
+            <span>
+              <Icon name="external" />
+            </span>
           </a>
         </div>
         <button
@@ -71,7 +75,7 @@ export default function Header() {
           aria-controls="mobile-menu"
           onClick={() => setOpen(true)}
         >
-          Menu <span>＋</span>
+          Menu <Icon name="plus" />
         </button>
         <dialog
           id="mobile-menu"
@@ -89,7 +93,7 @@ export default function Header() {
           <div className="window-bar">
             <span id="menu-title">OPENBRACKET / NAVIGATION</span>
             <button onClick={close} autoFocus aria-label="Close navigation">
-              Close ×
+              Close <Icon name="close" />
             </button>
           </div>
           <nav aria-label="Mobile navigation">
@@ -102,7 +106,9 @@ export default function Header() {
               >
                 <span className="mono">0{i + 1}</span>
                 {link.label}
-                <span>↗</span>
+                <span>
+                  <Icon name="external" />
+                </span>
               </a>
             ))}
           </nav>
@@ -112,7 +118,10 @@ export default function Header() {
               <ThemeToggle />
             </div>
             <a className="button" href="/contact" onClick={close}>
-              Let’s talk <span>↗</span>
+              Let’s talk{" "}
+              <span>
+                <Icon name="external" />
+              </span>
             </a>
           </div>
           <p className="mono">SMALL STUDIO. OPEN POSSIBILITIES.</p>

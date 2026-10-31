@@ -5,6 +5,10 @@ import { site } from "../data/site"
 import "./globals.css"
 import { themeBootstrap } from "../lib/theme"
 export const metadata: Metadata = {
+  robots:
+    process.env.CONTEXT && process.env.CONTEXT !== "production"
+      ? { index: false, follow: false }
+      : { index: true, follow: true },
   metadataBase: new URL(site.url),
   title: {
     default: "OpenBracket — Websites & applications, thoughtfully built",

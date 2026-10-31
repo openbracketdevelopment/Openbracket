@@ -1,3 +1,4 @@
+import Icon from "../../components/icon"
 import type { CSSProperties } from "react"
 import type { Metadata } from "next"
 import Image from "next/image"
@@ -7,6 +8,26 @@ export const metadata: Metadata = {
   title: "Work & professional experience",
   description:
     "Selected websites, e-commerce experiences, and interface design from Tam Pham’s professional portfolio, with individual roles and collaboration credits.",
+  openGraph: {
+    description:
+      "Selected websites, e-commerce experiences, and interface design from Tam Pham’s professional portfolio, with individual roles and collaboration credits.",
+    title: "Selected websites & digital experiences | OpenBracket",
+    url: "/work",
+    images: [
+      {
+        url: "/work/opengraph-image",
+        width: 1200,
+        height: 630,
+        alt: "OpenBracket — Selected websites & digital experiences",
+      },
+    ],
+  },
+  twitter: {
+    description:
+      "Selected websites, e-commerce experiences, and interface design from Tam Pham’s professional portfolio, with individual roles and collaboration credits.",
+    card: "summary_large_image",
+    images: ["/work/opengraph-image"],
+  },
   alternates: { canonical: "/work" },
 }
 export default function Work() {
@@ -38,7 +59,7 @@ export default function Work() {
         <nav className="anchor-links" aria-label="Featured projects">
           {projects.map(project => (
             <a key={project.id} href={`#${project.id}`}>
-              {project.name} ↓
+              {project.name} <Icon name="down" />
             </a>
           ))}
         </nav>
@@ -62,12 +83,14 @@ export default function Work() {
                 <div className="window-bar">
                   <span>
                     <span className="window-dots" aria-hidden="true">
-                      ● ● ●
+                      <Icon name="dots" />
                     </span>{" "}
                     {String(index + 1).padStart(2, "0")} /{" "}
                     {project.category.toUpperCase()}
                   </span>
-                  <span aria-hidden="true">↗</span>
+                  <span aria-hidden="true">
+                    <Icon name="external" />
+                  </span>
                 </div>
                 <a
                   href={project.caseStudy}
@@ -123,11 +146,12 @@ export default function Work() {
                 )}
                 <div className="project-links">
                   <a className="text-link" href={project.caseStudy}>
-                    Read the original case study ↗
+                    Read the original case study <Icon name="external" />
                   </a>
                   {project.live && (
                     <a className="text-link" href={project.live}>
-                      {project.id === "toro" ? "Visit Toro" : "Visit website"} ↗
+                      {project.id === "toro" ? "Visit Toro" : "Visit website"}{" "}
+                      <Icon name="external" />
                     </a>
                   )}
                 </div>

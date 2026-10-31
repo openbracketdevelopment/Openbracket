@@ -1,3 +1,4 @@
+import Icon from "./icon"
 import Link from "next/link"
 import Image from "next/image"
 import { navigation, site } from "../data/site"
@@ -43,7 +44,7 @@ export default function Footer() {
         <div>
           <p className="mono">START A CONVERSATION</p>
           <a className="footer-email" href={`mailto:${site.email}`}>
-            {site.email} ↗
+            {site.email} <Icon name="external" />
           </a>
           <a className="phone" href={`tel:${site.phone}`}>
             {site.phone}
@@ -55,7 +56,9 @@ export default function Footer() {
         <div>
           <a href="/privacy">Privacy</a>
           <a href="/sitemap">Sitemap</a>
-          <a href="#main">Back to top ↑</a>
+          <a href="#main">
+            Back to top <Icon name="up" />
+          </a>
         </div>
       </div>
     </footer>

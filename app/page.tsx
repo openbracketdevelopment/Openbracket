@@ -1,10 +1,14 @@
+import Icon from "../components/icon"
 import type { Metadata } from "next"
 import Image from "next/image"
 import HeroLocation from "../components/hero-location"
 import HeroVisual from "../components/hero-visual"
 import ClosingCta from "../components/closing-cta"
 import { clients, process, services, site } from "../data/site"
-export const metadata: Metadata = { alternates: { canonical: "/" } }
+export const metadata: Metadata = {
+  title: { absolute: "OpenBracket — Web development in Dallas–Fort Worth" },
+  alternates: { canonical: "/" },
+}
 export default function Home() {
   return (
     <main id="main">
@@ -28,10 +32,13 @@ export default function Home() {
             </p>
             <div className="hero-actions">
               <a className="button" href="/contact">
-                Tell us about your project <span>↗</span>
+                Tell us about your project{" "}
+                <span>
+                  <Icon name="external" />
+                </span>
               </a>
               <a className="text-link" href="/services">
-                Explore our services ↓
+                Explore our services <Icon name="down" />
               </a>
             </div>
           </div>
@@ -40,7 +47,9 @@ export default function Home() {
         <div className="hero-foot mono">
           <HeroLocation />
           <span>DESIGN + DEVELOPMENT + A LITTLE PERSONALITY</span>
-          <span>SCROLL TO EXPLORE ↓</span>
+          <span>
+            SCROLL TO EXPLORE <Icon name="down" />
+          </span>
         </div>
       </section>
       {clients.length > 0 && (
@@ -96,13 +105,16 @@ export default function Home() {
                     <h3>{service.short}</h3>
                     <p>{service.description}</p>
                   </div>
-                  <span className="row-arrow">↗</span>
+                  <span className="row-arrow">
+                    <Icon name="external" />
+                  </span>
                 </a>
               ),
             )}
           </div>
           <a href="/services" className="text-link">
-            Explore all services, including design & mobile discovery ↗
+            Explore all services, including design & mobile discovery{" "}
+            <Icon name="external" />
           </a>
         </div>
       </section>
@@ -123,7 +135,10 @@ export default function Home() {
           {process.map((step, i) => (
             <li key={step.title}>
               <span className="step-number mono">
-                0{i + 1} <span>→</span>
+                0{i + 1}{" "}
+                <span>
+                  <Icon name="arrow" />
+                </span>
               </span>
               <h3>{step.title}</h3>
               <p>{step.text}</p>
@@ -157,7 +172,7 @@ export default function Home() {
               practical decisions shaped around your business.
             </p>
             <a href="/about" className="text-link">
-              A little more about OpenBracket ↗
+              A little more about OpenBracket <Icon name="external" />
             </a>
           </div>
         </div>

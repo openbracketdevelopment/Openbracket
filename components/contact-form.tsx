@@ -1,4 +1,5 @@
 "use client"
+import Icon from "./icon"
 import { useRef, useState } from "react"
 import type { FormEvent } from "react"
 import { contactSchema, projectTypes, budgetRanges } from "../lib/contact"
@@ -46,19 +47,24 @@ export default function ContactForm() {
         method: "POST",
         body: data,
       })
-      const result: { ok?: boolean; error?: string; fields?: ContactFields } =
-        await response.json()
+      const result: {
+        ok?: boolean
+        error?: string
+        fields?: ContactFields
+        requestId?: string
+      } = await response.json()
       if (!response.ok || result.ok !== true) {
         if (result.fields) invalid(form, result.fields)
         else
           setStatus(
-            result.error ||
-              "We couldn’t send your message. Please try again or email us directly.",
+            (result.error ||
+              "We couldn’t send your message. Please try again or email us directly.") +
+              (result.requestId ? ` Reference: ${result.requestId}` : ""),
           )
       } else {
         setSuccess(true)
         setStatus(
-          "Thanks! Your message has been accepted by our email provider. We look forward to hearing more.",
+          "Thanks! We’ve received your message and look forward to learning more about your project.",
         )
         form.reset()
         submissionId.current = ""
@@ -101,7 +107,9 @@ export default function ContactForm() {
     >
       <div className="window-bar">
         <span>NEW_MESSAGE / OPENBRACKET</span>
-        <span>↗</span>
+        <span>
+          <Icon name="external" />
+        </span>
       </div>
       <div className="form-content">
         <p className="form-instructions">
@@ -131,6 +139,17 @@ export default function ContactForm() {
             {error("email")}
           </label>
         </div>
+        <label htmlFor="phone">
+          Phone *
+          <input
+            {...field("phone")}
+            type="tel"
+            autoComplete="tel"
+            required
+            maxLength={40}
+          />
+          {error("phone")}
+        </label>
         <label htmlFor="company">
           Company <span>(optional)</span>
           <input
@@ -198,11 +217,16 @@ export default function ContactForm() {
         </div>
         <p className="privacy-note">
           We use these details to respond to your inquiry. Messages are sent
-          through Resend. <a href="/privacy">Privacy information ↗</a>
+          through Resend.{" "}
+          <a href="/privacy">
+            Privacy information <Icon name="external" />
+          </a>
         </p>
         <button className="button" disabled={pending}>
           {pending ? "Sending your message…" : "Send your message"}{" "}
-          <span>↗</span>
+          <span>
+            <Icon name="external" />
+          </span>
         </button>
         <p
           ref={feedback}

@@ -1,3 +1,4 @@
+import Icon from "../icon"
 import { bootMessages, type PowerState } from "../../lib/crt-power"
 import type { TexasClock } from "../../lib/texas-clock"
 import { terminalPhrases } from "../../lib/typewriter"
@@ -162,8 +163,12 @@ export default function MonitorFallback({
               </g>
             )}
             <path d="M0 245H394" stroke="#58765c" strokeWidth=".6" />
-            <text y="264" fontSize="10" fill="#91ba8c">
-              {clock ? (clock.isDay ? "☀" : "☾") : ""}{" "}
+            {clock && (
+              <svg x="0" y="253" width="12" height="12" viewBox="0 0 20 20">
+                <Icon name={clock.isDay ? "sun" : "moon"} />
+              </svg>
+            )}
+            <text x="17" y="264" fontSize="10" fill="#91ba8c">
               {clock?.label || "DFW, TX · --:-- -- CT"}
             </text>
           </g>
